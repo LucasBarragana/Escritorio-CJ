@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import Link from 'next/link';
+
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -28,7 +30,40 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+    <div className="flex">
+      <aside className="w-64 min-h-screen bg-gray-800 text-white">
+        <nav className="p-4">
+          <ul>
+            <li className="mb-4">
+              <Link href="/dashboard/home" className="block p-2 rounded hover:bg-gray-700">
+                Home
+              </Link>
+            </li>
+            <li className="mb-4">
+              <Link href="/dashboard/processos" className="block p-2 rounded hover:bg-gray-700">
+                Processos
+              </Link>
+            </li>
+            <li className="mb-4">
+              <Link href="/dashboard/contacts" className="block p-2 rounded hover:bg-gray-700">
+               Contatos
+              </Link>
+            </li>
+            <li className="mb-4">
+              <Link href="/dashboard/relatorios" className="block p-2 rounded hover:bg-gray-700">
+                Relatórios
+              </Link>
+            </li>
+            <li>
+              <Link href="/dashboard/settings" className="block p-2 rounded hover:bg-gray-700">
+                Configurações
+              </Link>
+            </li>
+          </ul>
+        </nav>
+      </aside>
         {children}
+        </div>
       </body>
     </html>
   );
