@@ -134,7 +134,7 @@ export default function Home() {
     <div className="p-8">
       <h2 className="text-2xl font-semibold mb-6">Dashboard de Processos</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="bg-gray-100 p-6 rounded-lg shadow-md">
           <h3 className="text-xl font-semibold mb-4">
             Total de Leads Cadastrados <p className="text-sm font-normal">Últimos 30 dias</p>
           </h3>
@@ -164,14 +164,14 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="bg-gray-100 p-6 rounded-lg shadow-md">
           <h3 className="text-xl font-semibold mb-4">
             Contratos Fechados <p className="text-sm font-normal">Últimos 30 dias</p>
           </h3>
           <p className="text-2xl font-bold">{processContratoFechadoCount}</p>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="bg-gray-100 p-6 rounded-lg shadow-md">
           <h3 className="text-xl font-semibold mb-4">
             Contratos em Negociação <p className="text-sm font-normal">Últimos 30 dias</p>
           </h3>
