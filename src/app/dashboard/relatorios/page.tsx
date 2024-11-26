@@ -1,22 +1,21 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import Chart from 'chart.js/auto'; // Importando diretamente o Chart.js
+import Chart from 'chart.js/auto';
 
 type Processo = {
   id: number;
-  lead: string;
+  especialidade: string;
   status: string;
-  area: string;
-  responsavelAtendimento: string;
-  responsavelFechamento: string;
+  contratoFechado: string;
+  advogado: string;
 };
 
 export default function Relatorios() {
   const [processos, setProcessos] = useState<Processo[]>([]);
-  const chartRefArea = useRef<HTMLCanvasElement | null>(null);
+  const chartRefEspecialidade = useRef<HTMLCanvasElement | null>(null);
   const chartRefStatus = useRef<HTMLCanvasElement | null>(null);
-  const chartRefAtendimento = useRef<HTMLCanvasElement | null>(null);
-  const chartRefFechamento = useRef<HTMLCanvasElement | null>(null);
+  const chartRefContratoFechado = useRef<HTMLCanvasElement | null>(null);
+  const chartRefAdvogados = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
     const storedProcessos = localStorage.getItem('processos');
@@ -27,32 +26,45 @@ export default function Relatorios() {
 
   useEffect(() => {
     if (processos.length > 0) {
-      const areas = [...new Set(processos.map((p) => p.area))];
-      const statusList = [...new Set(processos.map((p) => p.status))];
-      const responsaveisAtendimento = [...new Set(processos.map((p) => p.responsavelAtendimento))];
-      const responsaveisFechamento = [...new Set(processos.map((p) => p.responsavelFechamento))];
+      // Filtrando apenas os processos abertos
+      const processosAbertos = processos.filter((p) => p.status !== 'Fechado');
 
-      const countByArea = areas.map((area) => ({
-        area,
-        count: processos.filter((p) => p.area === area).length,
+      // Dados para "Especialidade"
+      const especialidades = [...new Set(processos.map((p) => p.especialidade))];
+      const countByEspecialidade = especialidades.map((especialidade) => ({
+        especialidade,
+        count: processosAbertos.filter((p) => p.especialidade === especialidade).length,
       }));
 
+      // Dados para "Status"
+      const statusList = [...new Set(processos.map((p) => p.status))];
       const countByStatus = statusList.map((status) => ({
         status,
-        count: processos.filter((p) => p.status === status).length,
+        count: processosAbertos.filter((p) => p.status === status).length,
       }));
 
-      const countByResponsavelAtendimento = responsaveisAtendimento.map((responsavel) => ({
-        responsavel,
-        count: processos.filter((p) => p.responsavelAtendimento === responsavel).length,
+      // Dados para "Contrato Fechado"
+      const contratos = [...new Set(processos.map((p) => p.contratoFechado))];
+      const countByContrato = contratos.map((contrato) => ({
+        contrato,
+        count: processosAbertos.filter((p) => p.contratoFechado === contrato).length,
       }));
 
-      const countByResponsavelFechamento = responsaveisFechamento.map((responsavel) => ({
-        responsavel,
-        count: processos.filter((p) => p.responsavelFechamento === responsavel).length,
+      // Dados para "Advogados"
+      const advogados = [...new Set(processos.map((p) => p.advogado))];
+      const countByAdvogado = advogados.map((advogado) => ({
+        advogado,
+        count: processosAbertos.filter((p) => p.advogado === advogado).length,
       }));
 
-      const createPieChart = (chartRef: React.RefObject<HTMLCanvasElement>, labels: string[], data: number[], label: string, colors: string[]) => {
+      // Função para criar gráficos de pizza
+      const createPieChart = (
+        chartRef: React.RefObject<HTMLCanvasElement>,
+        labels: string[],
+        data: number[],
+        label: string,
+        colors: string[]
+      ) => {
         if (chartRef.current) {
           new Chart(chartRef.current, {
             type: 'pie',
@@ -74,13 +86,47 @@ export default function Relatorios() {
         }
       };
 
+      // Função para criar gráfico de barras
+      const createBarChart = (
+        chartRef: React.RefObject<HTMLCanvasElement>,
+        labels: string[],
+        data: number[],
+        label: string,
+        colors: string[]
+      ) => {
+        if (chartRef.current) {
+          new Chart(chartRef.current, {
+            type: 'bar',
+            data: {
+              labels,
+              datasets: [
+                {
+                  label,
+                  data,
+                  backgroundColor: colors,
+                  hoverBackgroundColor: colors,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              scales: {
+                x: { beginAtZero: true },
+                y: { beginAtZero: true },
+              },
+            },
+          });
+        }
+      };
+
       const colors = ['#ff6384', '#36a2eb', '#cc65fe', '#ffce56', '#4bc0c0', '#f56942'];
 
+      // Criando os gráficos
       createPieChart(
-        chartRefArea,
-        countByArea.map((item) => item.area),
-        countByArea.map((item) => item.count),
-        'Processos por Área',
+        chartRefEspecialidade,
+        countByEspecialidade.map((item) => item.especialidade),
+        countByEspecialidade.map((item) => item.count),
+        'Processos por Especialidade',
         colors
       );
 
@@ -93,18 +139,18 @@ export default function Relatorios() {
       );
 
       createPieChart(
-        chartRefAtendimento,
-        countByResponsavelAtendimento.map((item) => item.responsavel),
-        countByResponsavelAtendimento.map((item) => item.count),
-        'Processos por Responsável por Atendimento',
+        chartRefContratoFechado,
+        countByContrato.map((item) => item.contrato),
+        countByContrato.map((item) => item.count),
+        'Processos por Contrato Fechado',
         colors
       );
 
-      createPieChart(
-        chartRefFechamento,
-        countByResponsavelFechamento.map((item) => item.responsavel),
-        countByResponsavelFechamento.map((item) => item.count),
-        'Processos por Responsável por Fechamento',
+      createBarChart(
+        chartRefAdvogados,
+        countByAdvogado.map((item) => item.advogado),
+        countByAdvogado.map((item) => item.count),
+        'Processos por Advogado',
         colors
       );
     }
@@ -113,26 +159,11 @@ export default function Relatorios() {
   return (
     <div className="p-10">
       <h1 className="text-2xl font-bold">Relatórios</h1>
-      <div className="my-4">
-        <label className="block text-sm font-medium text-gray-700">Pesquisar por Períodos</label>
-        <div className="flex gap-4">
-          <input
-            type="date"
-            className="p-2 mt-1 border border-gray-300 rounded-md"
-            required
-          />
-          <input
-            type="date"
-            className="p-2 mt-1 border border-gray-300 rounded-md"
-            required
-          />
-        </div>
-      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
         <div>
-          <h2 className="text-lg font-semibold">Processos por Área</h2>
-          <canvas ref={chartRefArea}></canvas>
+          <h2 className="text-lg font-semibold">Processos por Especialidade</h2>
+          <canvas ref={chartRefEspecialidade}></canvas>
         </div>
 
         <div>
@@ -141,13 +172,13 @@ export default function Relatorios() {
         </div>
 
         <div>
-          <h2 className="text-lg font-semibold">Processos por Responsável por Atendimento</h2>
-          <canvas ref={chartRefAtendimento}></canvas>
+          <h2 className="text-lg font-semibold">Processos por Contrato Fechado</h2>
+          <canvas ref={chartRefContratoFechado}></canvas>
         </div>
 
         <div>
-          <h2 className="text-lg font-semibold">Processos por Responsável por Fechamento</h2>
-          <canvas ref={chartRefFechamento}></canvas>
+          <h2 className="text-lg font-semibold">Processos por Advogado</h2>
+          <canvas ref={chartRefAdvogados}></canvas>
         </div>
       </div>
     </div>

@@ -20,6 +20,24 @@ interface SDR {
   cargo: string;
 }
 
+interface Especialidade {
+  id: string;
+  nome: string;
+  backgroundColor: string;
+}
+
+interface Status {
+  id: string;
+  nome: string;
+  backgroundColor: string;
+}
+
+interface ContratoFechado {
+  id: string;
+  nome: string;
+  backgroundColor: string;
+}
+
 interface Processo {
   id: string;
   nomeLead: string;
@@ -49,31 +67,64 @@ export default function ProcessoPage() {
   const [contratoFechado, setContratoFechado] = useState('');
   const [qualificacao, setQualificacao] = useState('');
   const [fechamento, setFechamento] = useState('');
-  const [especialidadesDisponiveis] = useState(['Previdenciário', 'Criminal', 'Família']);
-  const [statusDisponiveis] = useState(['Em atendimento', 'Enviado para fechamento', 'Repassado para adv', 'Consultório grátis']);
-  const [contratoFechadoDisponiveis] = useState(['Não', 'Negociando', 'Sim']);
+  const [especialidades, setEspecialidades] = useState<Especialidade[]>([]);
+  const [statuses, setStatuses] = useState<Status[]>([]);
+  const [contratos, setContratos] = useState<ContratoFechado[]>([]);
   const [qualificacaoDisponiveis] = useState(['Contato', 'Inicial']);
-  const [fechamentoDisponiveis] = useState(['Não', 'Negociando', 'Sim']);
   const [editingProcessoId, setEditingProcessoId] = useState<string | null>(null);
   const [selectedLead, setSelectedLead] = useState<Processo | null>(null); // Para pop-up
+  const [searchQuery, setSearchQuery] = useState('');
+  const filteredProcessos = processos.filter((processo) =>
+    processo.nomeLead.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   useEffect(() => {
     const storedLeads = localStorage.getItem('leads');
     const storedAdvogados = localStorage.getItem('advogados');
     const storedSdrs = localStorage.getItem('sdrs');
     const storedProcessos = localStorage.getItem('processos');
+    const storedEspecialidades = localStorage.getItem('especialidades');
+    const storedStatuses = localStorage.getItem('statuses');
+    const storedContratos = localStorage.getItem('contratos');
 
     if (storedLeads) setLeads(JSON.parse(storedLeads));
     if (storedAdvogados) setAdvogados(JSON.parse(storedAdvogados));
     if (storedSdrs) setSdrs(JSON.parse(storedSdrs));
+    if (storedEspecialidades) {
+      setEspecialidades(JSON.parse(storedEspecialidades));
+    }
+    if (storedStatuses) {
+      setStatuses(JSON.parse(storedStatuses));
+      if (storedContratos) {
+        setContratos(JSON.parse(storedContratos));
+      }      
+    }
     if (storedProcessos) setProcessos(JSON.parse(storedProcessos));
   }, []);
 
+    // Função para obter a cor do status selecionado
+    const getEspecialidadeBackgroundColor = (especialidadeName: string) => {
+      const especialidade = especialidades.find((item) => item.nome === especialidadeName);
+      return especialidade ? especialidade.backgroundColor : '#ffffff';
+    };
+
+    const getStatusBackgroundColor = (statusName: string) => {
+      const status = statuses.find((item) => item.nome === statusName);
+      return status ? status.backgroundColor : '#ffffff';
+    };
+
+    const getContractBackgroundColor = (contratoFechadoName: string) => {
+      const contratoFechado = contratos.find((item) => item.nome === contratoFechadoName);
+      return contratoFechado ? contratoFechado.backgroundColor : '#ffffff';
+    };
+  
+
+    // Verifica se o nomeLead corresponde a algum lead e preenche o telefone
   const handleNomeLeadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const nome = e.target.value;
     setNomeLead(nome);
 
-    // Verifica se o nomeLead corresponde a algum lead e preenche o telefone
+
     const lead = leads.find((lead) => lead.nome === nome);
     if (lead) {
       setTelefone(lead.telefone);
@@ -92,9 +143,9 @@ export default function ProcessoPage() {
       data,
       advogado: advogados.find((advogado) => advogado.id === advogadoId)?.nome || '',
       sdr: sdrs.find((sdr) => sdr.id === sdrId)?.nome || '',
-      especialidade,
-      status,
-      contratoFechado,
+      especialidade: especialidades.find((item) => item.id === especialidade)?.nome || '',
+      status: statuses.find((item) => item.id === status)?.nome || '',
+      contratoFechado: contratos.find((item) => item.id === contratoFechado)?.nome || '',
       qualificacao,
       fechamento: advogados.find((advogado) => advogado.id === fechamento)?.nome || '',
     };
@@ -135,9 +186,9 @@ export default function ProcessoPage() {
     setData(processo.data);
     setAdvogadoId(advogados.find((advogado) => advogado.nome === processo.advogado)?.id || '');
     setSdrId(sdrs.find((sdr) => sdr.nome === processo.sdr)?.id || '');
-    setEspecialidade(processo.especialidade);
-    setStatus(processo.status);
-    setContratoFechado(processo.contratoFechado);
+    setEspecialidade(especialidades.find((especialidade) => especialidade.nome === processo.especialidade)?.id || '');
+    setStatus(statuses.find((status) => status.nome === processo.status)?.id || '');
+    setContratoFechado(contratos.find((contratoFechado) => contratoFechado.nome === processo.contratoFechado)?.id || '');
     setQualificacao(processo.qualificacao);
     setFechamento(advogados.find((advogado) => advogado.nome === processo.fechamento)?.id || '');
   };
@@ -148,8 +199,37 @@ export default function ProcessoPage() {
     localStorage.setItem('processos', JSON.stringify(updatedProcessos)); // Armazene o estado atualizado no localStorage
   };
 
+  // Função para abrir a plataforma de conversa DIgisac
+  const handleOpenChat = async (telefone: string) => {
+    try {
+      const response = await fetch('https://api.digisac.com.br/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer SEU_TOKEN_API_AQUI', // Substitua pelo seu token
+        },
+        body: JSON.stringify({
+          channel: 'whatsapp',
+          phone: telefone,
+          message: '', // Mensagem inicial (opcional)
+        }),
+      });
+
+      if (response.ok) {
+        alert(`Conversa iniciada com o número ${telefone} no Digisac!`);
+      } else {
+        const errorData = await response.json();
+        console.error('Erro ao abrir conversa:', errorData);
+        alert('Erro ao iniciar conversa. Verifique os dados e tente novamente.');
+      }
+    } catch (error) {
+      console.error('Erro de integração:', error);
+      alert('Erro de conexão com o Digisac.');
+    }
+  };
+
   return (
-    <div className="p-8">
+    <div className="p-10">
       <h2 className="text-2xl font-semibold mb-6">{editingProcessoId ? 'Editar Processo' : 'Cadastrar Novo Processo'}</h2>
       <form onSubmit={handleAddOrUpdateProcesso} className="flex space-x-10 mb-6">
         <div>
@@ -196,14 +276,14 @@ export default function ProcessoPage() {
         </div>
         <div>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Negociação</label>
+            <label className="block text-sm font-medium text-gray-700">Negociador</label>
             <select
               value={advogadoId}
               onChange={(e) => setAdvogadoId(e.target.value)}
               className="w-full p-2 mt-1 border border-gray-300 rounded-md"
               required
             >
-              <option value="">Responsável pela pegociação</option>
+              <option value="">Responsável pela negociação </option>
               {advogados.map((advogado) => (
                 <option key={advogado.id} value={advogado.id}>
                   {advogado.nome}
@@ -213,14 +293,14 @@ export default function ProcessoPage() {
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Fechamento</label>
+            <label className="block text-sm font-medium text-gray-700">Responsável</label>
             <select
               value={fechamento}
               onChange={(e) => setFechamento(e.target.value)}
               className="w-full p-2 mt-1 border border-gray-300 rounded-md"
               required
             >
-              <option value="">Responsável pelo fechamento</option>
+              <option value="">Responsável pelo andamento</option>
               {advogados.map((advogado) => (
                 <option key={advogado.id} value={advogado.id}>
                   {advogado.nome}
@@ -254,12 +334,11 @@ export default function ProcessoPage() {
               value={especialidade}
               onChange={(e) => setEspecialidade(e.target.value)}
               className="w-full p-2 mt-1 border border-gray-300 rounded-md"
-              required
             >
-              <option value="">Selecione a Área</option>
-              {especialidadesDisponiveis.map((especialidade, index) => (
-                <option key={index} value={especialidade}>
-                  {especialidade}
+              <option value="">Selecione a Especialidade</option>
+              {especialidades.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.nome}
                 </option>
               ))}
             </select>
@@ -267,19 +346,18 @@ export default function ProcessoPage() {
 
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">Status</label>
-            <select
+              <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
               className="w-full p-2 mt-1 border border-gray-300 rounded-md"
-              required
             >
               <option value="">Selecione o Status</option>
-              {statusDisponiveis.map((status, index) => (
-                <option key={index} value={status}>
-                  {status}
+              {statuses.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.nome}
                 </option>
               ))}
-            </select>
+          </select>
           </div>
 
           <div className="mb-4">
@@ -288,15 +366,14 @@ export default function ProcessoPage() {
               value={contratoFechado}
               onChange={(e) => setContratoFechado(e.target.value)}
               className="w-full p-2 mt-1 border border-gray-300 rounded-md"
-              required
             >
-              <option value="">Selecione o Status do Contrato</option>
-              {contratoFechadoDisponiveis.map((status, index) => (
-                <option key={index} value={status}>
-                  {status}
+              <option value="">Selecione o Contrato Fechado</option>
+              {contratos.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.nome}
                 </option>
               ))}
-            </select>
+          </select>
           </div>
 
           <div className="mb-4">
@@ -317,7 +394,7 @@ export default function ProcessoPage() {
           </div>
         </div>
         <div>
-          <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded-md">
+          <button type="submit" className="w-full bg-[#751B1E] text-white p-2 rounded-md">
             {editingProcessoId ? 'Atualizar Processo' : 'Cadastrar Processo'}
           </button>
         </div>
@@ -327,65 +404,104 @@ export default function ProcessoPage() {
       <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700">Pesquisar</label>
           <input
-            type="email"
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Pesquisar pelo nome do lead"
             className="p-2 mt-1 border border-gray-300 rounded-md"
-            required
           />
         </div>
+        
+      <div className='w-full h-[4px] bg-red-900'></div>
       <table className="min-w-full table-auto border-collapse">
         <thead>
           <tr>
-            <th className="border px-4 py-2">Nome do Lead</th>
-            <th className="border px-4 py-2">Data</th>
-            <th className="border px-4 py-2">Negociação</th>
-            <th className="border px-4 py-2">Fechamento</th>
-            <th className="border px-4 py-2">SDR</th>
-            <th className="border px-4 py-2">Área</th>
-            <th className="border px-4 py-2">Status</th>
-            <th className="border px-4 py-2">Contrato Fechado</th>
-            <th className="border px-4 py-2">Qualificação</th>
-            <th className="border px-4 py-2">Ações</th>
+            <th className="px-4 py-2">Nome do Lead</th>
+            <th className="px-4 py-2">Data</th>
+            <th className="px-4 py-2">Negociador</th>
+            <th className="px-4 py-2">Responsável</th>
+            <th className="px-4 py-2">SDR</th>
+            <th className="px-4 py-2">Área</th>
+            <th className="px-4 py-2">Status</th>
+            <th className="px-4 py-2">Contrato Fechado</th>
+            <th className="px-4 py-2">Qualificação</th>
+            <th className="px-4 py-2">Ações</th>
           </tr>
         </thead>
         <tbody>
-          {processos.map((processo) => (
+          {filteredProcessos.map((processo) => (
             <tr key={processo.id}>
-              <td className="border px-4 py-2">
+              <td className="border-t border-t-[#771A1D] px-4 py-2">
                 <button
                   className=" underline"
                   onClick={() => setSelectedLead(processo)}
                 >
                   {processo.nomeLead.split(' ')[0]}
                 </button>
+                <br />
+                <button
+                    onClick={() => handleOpenChat(processo.telefone)}
+                    className="text-xs color-black hover:text-md"
+                  >
+                    Digisac
+                  </button>
               </td>
-              <td className="border px-4 py-2">{processo.data}</td>
-              <td className="border px-4 py-2">{processo.advogado}</td>
-              <td className="border px-4 py-2">{processo.fechamento}</td>
-              <td className="border px-4 py-2">{processo.sdr}</td>
-              <td className="border px-4 py-2">{processo.especialidade}</td>
-              <td className="border px-4 py-2">{processo.status}</td>
-              <td className="border px-4 py-2">{processo.contratoFechado}</td>
-              <td className="border px-4 py-2">{processo.qualificacao}</td>
+              <td className="border-t border-t-[#771A1D] px-4 py-2 text-sm">{processo.data}</td>
+              <td className="border-t border-t-[#771A1D] px-4 py-2 text-sm">{processo.advogado}</td>
+              <td className="border-t border-t-[#771A1D] px-4 py-2 text-sm">{processo.fechamento}</td>
+              <td className="border-t border-t-[#771A1D] px-4 py-2 text-sm">{processo.sdr}</td>
+              <td className="border-t border-t-[#771A1D] px-4 py-2">
+                <p                  
+                  className="flex justify-center px-2 py-1 rounded text-xs font-semibold"
+                  style={{ backgroundColor: getEspecialidadeBackgroundColor(processo.status) }}
+                >
+                  {processo.especialidade}
+                </p>
+              </td>
+              <td className="border-t border-t-[#771A1D] px-4 py-2">
+                <p
+                  className="flex justify-center px-2 py-1 rounded text-xs font-semibold"
+                  style={{ backgroundColor: getStatusBackgroundColor(processo.status) }}
+                >
+                  {processo.status}
+                </p>
+              </td>
+              <td className="border-t border-t-[#771A1D] px-4 py-2">
+                <p
+                  className="flex justify-center px-2 py-1 rounded text-xs font-semibold"
+                  style={{ backgroundColor: getContractBackgroundColor(processo.contratoFechado) }}
+                  >
+                    {processo.contratoFechado}</p>
+              </td>
+              <td className="border-t border-t-[#771A1D] px-4 py-2">
+                <p className='flex justify-center px-2 py-1 bg-gray-200 rounded text-xs font-semibold'>{processo.qualificacao}</p>
+              </td>
 
-              <td className="border px-4 py-2 ">
-                <button
-                  onClick={() => handleEditProcesso(processo)}
-                  className="mr-2 my-2 bg-yellow-400 text-white px-3 py-1 rounded"
-                >
-                  Editar
-                </button>
-                <button
-                  onClick={() => handleDeleteProcesso(processo.id)}
-                  className="bg-red-600 text-white px-3 py-1 rounded"
-                >
-                  Excluir
-                </button>
+              <td className="border-t border-t-[#771A1D] px-4 py-2 ">
+                <div className='flex '>
+                  <button
+                    onClick={() => handleEditProcesso(processo)}
+                    className="mr-2 my-2 px-3 py-1 rounded"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => handleDeleteProcesso(processo.id)}
+                    className=" px-3 py-1 rounded"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                    </svg>
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-
+      <div className='w-full h-[4px] bg-red-900'></div>
       {selectedLead && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded shadow-md">

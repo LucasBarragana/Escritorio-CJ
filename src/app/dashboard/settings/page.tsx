@@ -2,6 +2,9 @@
 import { useState } from 'react';
 import Advogados from '@/app/components/advogados';
 import SDRPage from '@/app/components/sdr';
+import EspecialidadePage from '@/app/components/especialits';
+import StatusPage from '@/app/components/status';
+import ContratoFechadoPage from '@/app/components/contractdeal';
 
 export default function Settings() {
   const [selectedComponent, setSelectedComponent] = useState<string | null>(null);
@@ -25,7 +28,7 @@ export default function Settings() {
             Gerenciar Equipe SDR
           </button>
           <button
-            onClick={() => setSelectedComponent('areas')}
+            onClick={() => setSelectedComponent('especialits')}
             className="p-4 text-white bg-gray-500 rounded hover:bg-gray-600"
           >
             Gerenciar Áreas de Atuação
@@ -37,7 +40,7 @@ export default function Settings() {
             Gerenciar Status
           </button>
           <button
-            onClick={() => setSelectedComponent('situacaoContrato')}
+            onClick={() => setSelectedComponent('contractdeal')}
             className="p-4 text-white bg-gray-500 rounded hover:bg-gray-600"
           >
             Gerenciar Situação de Contrato
@@ -48,9 +51,9 @@ export default function Settings() {
         <div className="p-4  border-gray-300 rounded-md">
           {selectedComponent === 'advogados' && <Advogados />}
           {selectedComponent === 'sdr' && <SDRPage />}
-          {selectedComponent === 'areas' && <div>Gerenciar Áreas de Atuação</div>}
-          {selectedComponent === 'status' && <div>Gerenciar Status</div>}
-          {selectedComponent === 'situacaoContrato' && <div>Gerenciar Situação de Contrato</div>}
+          {selectedComponent === 'especialits' && <div><EspecialidadePage /></div>}
+          {selectedComponent === 'status' && <div><StatusPage /></div>}
+          {selectedComponent === 'contractdeal' && <div><ContratoFechadoPage /></div>}
         </div>
       </div>
     </div>

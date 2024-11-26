@@ -39,6 +39,11 @@ export default function Home() {
   const [lastMonthProcessos, setLastMonthProcessos] = useState<Processo[]>([]);
   const [currentMonthProcessos, setCurrentMonthProcessos] = useState<Processo[]>([]);
 
+  // Função para normalizar datas (somente ano e mês são relevantes)
+  const getNormalizedDate = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1);
+  };
+
   useEffect(() => {
     const storedProcessos = localStorage.getItem('processos');
     const storedAdvogados = localStorage.getItem('advogados');
@@ -49,22 +54,24 @@ export default function Home() {
   }, []); // Apenas executa uma vez ao montar o componente
 
   useEffect(() => {
-    // Calcular processos dos dois meses apenas quando `processos` mudar
-    const currentDate = new Date();
-    const currentMonth = currentDate.getMonth();
+    // Referência fixa para a data atual (pode ser alterada para fins de teste)
+    const referenceDate = getNormalizedDate(new Date());
+    const currentMonth = referenceDate.getMonth();
     const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-    const currentYear = currentDate.getFullYear();
+    const currentYear = referenceDate.getFullYear();
 
+    // Filtrar processos do mês atual
     const currentMonthProcessosFiltered = processos.filter((processo) => {
-      const processoDate = new Date(processo.data);
+      const processoDate = getNormalizedDate(new Date(processo.data));
       return (
         processoDate.getFullYear() === currentYear &&
         processoDate.getMonth() === currentMonth
       );
     });
 
+    // Filtrar processos do mês anterior
     const lastMonthProcessosFiltered = processos.filter((processo) => {
-      const processoDate = new Date(processo.data);
+      const processoDate = getNormalizedDate(new Date(processo.data));
       return (
         processoDate.getFullYear() === currentYear &&
         processoDate.getMonth() === lastMonth
@@ -73,7 +80,7 @@ export default function Home() {
 
     setCurrentMonthProcessos(currentMonthProcessosFiltered);
     setLastMonthProcessos(lastMonthProcessosFiltered);
-  }, [processos]); // Este effect depende de `processos`, mas é seguro
+  }, [processos]);
 
   const calculatePercentageChange = (currentMonth: number, lastMonth: number) => {
     if (lastMonth === 0) return 100;
@@ -144,29 +151,6 @@ export default function Home() {
             Contratos Fechados <p className="text-sm font-normal">Últimos 30 dias</p>
           </h3>
           <p className="text-2xl font-bold">{processContratoFechadoCount}</p>
-          <p
-            className={`text-lg ${
-              calculatePercentageChange(
-                currentMonthProcessos.length,
-                lastMonthProcessos.length
-              ) >= 0
-                ? 'text-green-500'
-                : 'text-red-500'
-            }`}
-          >
-            {calculatePercentageChange(
-              currentMonthProcessos.length,
-              lastMonthProcessos.length
-            ).toFixed(2)}
-            %{' '}
-            {calculatePercentageChange(
-              currentMonthProcessos.length,
-              lastMonthProcessos.length
-            ) >= 0
-              ? '↑'
-              : '↓'}{' '}
-            comparado ao mês anterior
-          </p>
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow-md">
@@ -174,37 +158,12 @@ export default function Home() {
             Contratos em Negociação <p className="text-sm font-normal">Últimos 30 dias</p>
           </h3>
           <p className="text-2xl font-bold">{processContratoFechadoCount}</p>
-          <p
-            className={`text-lg ${
-              calculatePercentageChange(
-                currentMonthProcessos.length,
-                lastMonthProcessos.length
-              ) >= 0
-                ? 'text-green-500'
-                : 'text-red-500'
-            }`}
-          >
-            {calculatePercentageChange(
-              currentMonthProcessos.length,
-              lastMonthProcessos.length
-            ).toFixed(2)}
-            %{' '}
-            {calculatePercentageChange(
-              currentMonthProcessos.length,
-              lastMonthProcessos.length
-            ) >= 0
-              ? '↑'
-              : '↓'}{' '}
-            comparado ao mês anterior
-          </p>
         </div>
       </div>
 
       <div className="flex justify-between">
         <div>
-          <h3 className="text-xl font-semibold mb-4">
-            Últimos Processos Fechados
-          </h3>
+          <h3 className="text-xl font-semibold mb-4">Últimos Processos Fechados</h3>
           <table className="min-w-full table-auto border-collapse mb-6">
             <thead>
               <tr>
@@ -228,7 +187,7 @@ export default function Home() {
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow-md">
-            <h1 className='font-semibold text-lg'>Controle de Contratos por Adv.</h1>
+          <h1 className="font-semibold text-lg">Controle de Contratos por Adv.</h1>
           {advogadosProcessosCount.map(
             ({ advogado, fechamentoCount, negociacaoCount }) => (
               <div key={advogado.id} className="flex space-x-4 p-2">

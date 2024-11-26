@@ -1,68 +1,65 @@
 'use client';
 import { useState, useEffect } from 'react';
 
-interface SDR {
+interface Especialidade {
   id: string;
   nome: string;
-  cargo: string;
+  backgroundColor: string;
 }
 
-export default function SDRPage() {
-  const [sdrs, setSdrs] = useState<SDR[]>([]);
+export default function EspecialidadePage() {
+  const [especialidades, setEspecialidades] = useState<Especialidade[]>([]);
   const [nome, setNome] = useState('');
-  const [cargo, setCargo] = useState('');
-  const [editingSdrId, setEditingSdrId] = useState<string | null>(null); // ID do SDR sendo editado
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [backgroundColor, setBackgroundColor] = useState('#ffffff');
 
   useEffect(() => {
-    const storedSdrs = localStorage.getItem('sdrs');
-    if (storedSdrs) {
-      setSdrs(JSON.parse(storedSdrs));
+    const storedEspecialidades = localStorage.getItem('especialidades');
+    if (storedEspecialidades) {
+      setEspecialidades(JSON.parse(storedEspecialidades));
     }
   }, []);
 
-  const handleAddOrUpdateSdr = (e: React.FormEvent) => {
+  const handleAddOrUpdate = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (editingSdrId) {
-      // Atualizar SDR existente
-      const updatedSdrs = sdrs.map((sdr) =>
-        sdr.id === editingSdrId ? { ...sdr, nome, cargo } : sdr
+    if (editingId) {
+      const updated = especialidades.map((item) =>
+        item.id === editingId ? { ...item, nome, backgroundColor  } : item
       );
-      setSdrs(updatedSdrs);
-      localStorage.setItem('sdrs', JSON.stringify(updatedSdrs));
-      setEditingSdrId(null);
+      setEspecialidades(updated);
+      localStorage.setItem('especialidades', JSON.stringify(updated));
+      setEditingId(null);
     } else {
-      // Adicionar novo SDR
-      const newSdr = { id: Date.now().toString(), nome, cargo };
-      const updatedSdrs = [...sdrs, newSdr];
-      setSdrs(updatedSdrs);
-      localStorage.setItem('sdrs', JSON.stringify(updatedSdrs));
+      const newEspecialidade = { id: Date.now().toString(), nome, backgroundColor  };
+      const updated = [...especialidades, newEspecialidade];
+      setEspecialidades(updated);
+      localStorage.setItem('especialidades', JSON.stringify(updated));
     }
 
     setNome('');
-    setCargo('');
   };
 
-  const handleEditSdr = (sdr: SDR) => {
-    setEditingSdrId(sdr.id);
-    setNome(sdr.nome);
-    setCargo(sdr.cargo);
+  const handleEdit = (item: Especialidade) => {
+    setEditingId(item.id);
+    setNome(item.nome);
+    setBackgroundColor(item.backgroundColor);
   };
 
-  const handleDeleteSdr = (sdrId: string) => {
-    const updatedSdrs = sdrs.filter((sdr) => sdr.id !== sdrId);
-    setSdrs(updatedSdrs);
-    localStorage.setItem('sdrs', JSON.stringify(updatedSdrs));
+  const handleDelete = (id: string) => {
+    const updated = especialidades.filter((item) => item.id !== id);
+    setEspecialidades(updated);
+    localStorage.setItem('especialidades', JSON.stringify(updated));
   };
 
   return (
     <div className="px-8">
       <h2 className="text-2xl font-semibold mb-6">
-        {editingSdrId ? 'Editar SDR' : 'Cadastrar Novo SDR'}
+        {editingId ? 'Editar Área' : 'Cadastrar Nova Área'}
       </h2>
-      <form onSubmit={handleAddOrUpdateSdr} className="mb-6">
+      <form onSubmit={handleAddOrUpdate} className="mb-6">
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">Nome</label>
+          <label className="block text-sm font-medium text-gray-700">Nome da Área</label>
           <input
             type="text"
             value={nome}
@@ -72,43 +69,39 @@ export default function SDRPage() {
           />
         </div>
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">Cargo</label>
+          <label className="block text-sm font-medium text-gray-700">Cor de Fundo</label>
           <input
-            type="text"
-            value={cargo}
-            onChange={(e) => setCargo(e.target.value)}
+            type="color"
+            value={backgroundColor}
+            onChange={(e) => setBackgroundColor(e.target.value)}
             className="w-full p-2 mt-1 border border-gray-300 rounded-md"
-            required
           />
         </div>
         <button
           type="submit"
           className="w-full py-2 bg-[#751B1E] text-white rounded-lg hover:bg-gray-600"
         >
-          {editingSdrId ? 'Atualizar SDR' : 'Adicionar SDR'}
+          {editingId ? 'Atualizar Área' : 'Adicionar Área'}
         </button>
       </form>
-      <h3 className="text-xl font-semibold mb-4">SDRs Cadastrados</h3>
+      <h3 className="text-xl font-semibold mb-4">Áreas Cadastradas</h3>
       <ul>
-        {sdrs.map((sdr) => (
-          <li
-            key={sdr.id}
-            className="flex justify-between space-x-10 items-center p-4 mb-2 bg-gray-100 rounded-md"
-          >
-            <div>
-              {sdr.nome} - {sdr.cargo}
-            </div>
+        {especialidades.map((item) => (
+          <li key={item.id} className="flex justify-between items-center gap-10 p-4 mb-2 bg-gray-100 rounded-md">
+            <span>{item.nome}</span>            
+            <span className='p-4 rounded-full'style={{ backgroundColor: item.backgroundColor }}></span>
             <div>
               <button
-                onClick={() => handleEditSdr(sdr)}
+                onClick={() => handleEdit(item)}
                 className="mr-2 px-4 py-2 rounded hover:bg-gray-200"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
                 </svg>
+
               </button>
               <button
-                onClick={() => handleDeleteSdr(sdr.id)}
+                onClick={() => handleDelete(item.id)}
                 className="px-4 py-2 rounded hover:bg-gray-200"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
