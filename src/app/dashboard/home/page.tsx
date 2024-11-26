@@ -7,6 +7,12 @@ interface Lead {
   telefone: string;
 }
 
+interface Especialidade {
+  id: string;
+  nome: string;
+  backgroundColor: string;
+}
+
 interface Advogado {
   id: string;
   nome: string;
@@ -38,6 +44,7 @@ export default function Home() {
   const [advogados, setAdvogados] = useState<Advogado[]>([]);
   const [lastMonthProcessos, setLastMonthProcessos] = useState<Processo[]>([]);
   const [currentMonthProcessos, setCurrentMonthProcessos] = useState<Processo[]>([]);
+  const [especialidades, setEspecialidades] = useState<Especialidade[]>([]);
 
   // Função para normalizar datas (somente ano e mês são relevantes)
   const getNormalizedDate = (date: Date) => {
@@ -88,8 +95,14 @@ export default function Home() {
     return change;
   };
 
+  //Card de Processos Fechado
   const processContratoFechadoCount = processos.filter(
-    (processo) => processo.contratoFechado === 'Sim'
+    (processo) => processo.contratoFechado === 'Fechado'
+  ).length;
+
+  //Card de Processos Fechado
+  const processContratoFechadoNegociandoCount = processos.filter(
+    (processo) => processo.contratoFechado === 'Negociando'
   ).length;
 
   const advogadosProcessosCount = advogados.map((advogado) => {
@@ -107,14 +120,19 @@ export default function Home() {
   });
 
   const lastFiveProcessosFechado = processos
-    .filter((processo) => processo.contratoFechado === 'Sim')
+    .filter((processo) => processo.contratoFechado === 'Fechado')
     .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())
     .slice(0, 5);
+
+      // Função para obter a cor do status selecionado
+      const getEspecialidadeBackgroundColor = (especialidadeName: string) => {
+        const especialidade = especialidades.find((item) => item.nome === especialidadeName);
+        return especialidade ? especialidade.backgroundColor : '#ffffff';
+      };
 
   return (
     <div className="p-8">
       <h2 className="text-2xl font-semibold mb-6">Dashboard de Processos</h2>
-
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <div className="bg-white p-6 rounded-lg shadow-md">
           <h3 className="text-xl font-semibold mb-4">
@@ -157,52 +175,73 @@ export default function Home() {
           <h3 className="text-xl font-semibold mb-4">
             Contratos em Negociação <p className="text-sm font-normal">Últimos 30 dias</p>
           </h3>
-          <p className="text-2xl font-bold">{processContratoFechadoCount}</p>
+          <p className="text-2xl font-bold">{processContratoFechadoNegociandoCount}</p>
         </div>
       </div>
 
       <div className="flex justify-between">
         <div>
           <h3 className="text-xl font-semibold mb-4">Últimos Processos Fechados</h3>
+          <div className='w-full h-[4px] bg-red-900'></div>
           <table className="min-w-full table-auto border-collapse mb-6">
             <thead>
               <tr>
-                <th className="border px-4 py-2">Nome do Lead</th>
-                <th className="border px-4 py-2">Negociação</th>
-                <th className="border px-4 py-2">Fechamento</th>
-                <th className="border px-4 py-2">Área</th>
+                <th className="px-4 py-2">Nome do Lead</th>
+                <th className="px-4 py-2">Data</th>
+                <th className="px-4 py-2">Negociador</th>
+                <th className="px-4 py-2">Responsável</th>
+                <th className="px-4 py-2">Área</th>
               </tr>
             </thead>
             <tbody>
               {lastFiveProcessosFechado.map((processo) => (
                 <tr key={processo.id}>
-                  <td className="border px-4 py-2">{processo.nomeLead}</td>
-                  <td className="border px-4 py-2">{processo.advogado}</td>
-                  <td className="border px-4 py-2">{processo.fechamento}</td>
-                  <td className="border px-4 py-2">{processo.especialidade}</td>
+                  <td className="border-t border-t-[#771A1D] px-4 py-2 text-sm">{processo.nomeLead}</td>
+                  <td className="border-t border-t-[#771A1D] px-4 py-2 text-sm">{processo.data}</td>
+                  <td className="border-t border-t-[#771A1D] px-4 py-2 text-sm">{processo.advogado}</td>
+                  <td className="border-t border-t-[#771A1D] px-4 py-2 text-sm">{processo.fechamento}</td>
+                  <td className="border-t border-t-[#771A1D] px-4 py-2">
+                    <p                  
+                      className="flex justify-center px-2 py-1 rounded text-xs font-semibold"
+                      style={{ backgroundColor: getEspecialidadeBackgroundColor(processo.status) }}
+                    >
+                      {processo.especialidade}
+                    </p>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          <div className='w-full h-[4px] bg-red-900'></div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h1 className="font-semibold text-lg">Controle de Contratos por Adv.</h1>
-          {advogadosProcessosCount.map(
-            ({ advogado, fechamentoCount, negociacaoCount }) => (
-              <div key={advogado.id} className="flex space-x-4 p-2">
-                <h3 className="text-md font-semibold">
-                  {advogado.nome} <p className="text-sm">Mensal</p>
-                </h3>
-                <p className="text-sm">
-                  <strong>Fechado:</strong> {fechamentoCount}
-                </p>
-                <p className="text-sm">
-                  <strong>Negociado:</strong> {negociacaoCount}
-                </p>
+        <div
+          className="bg-cover bg-center text-white p-6 rounded-lg shadow-custom-red"
+          style={{ backgroundImage: "url('/imgs/fundo1.jpg')" }}
+        >
+          <h1 className="font-semibold text-lg mb-4">Controle de Contratos por Adv.</h1>
+          {advogadosProcessosCount.map(({ advogado, fechamentoCount, negociacaoCount }) => (
+            <div
+              key={advogado.id}
+              className="flex justify-between gap-4 backdrop-blur-lg bg-white/20 mb-2 p-2 rounded shadow-md"
+            >
+              <h3 className="text-md font-semibold text-white p-2">
+                {advogado.nome} <p className="text-xs">Mensal</p>
+              </h3>
+              <div className="space-y-2">
+                <div className="flex justify-between gap-2">
+                  <p className="text-sm font-semibold">Responsável:
+                  </p>
+                  <p className="rounded-full bg-white text-[#751B1E] px-2 font-semibold">{fechamentoCount}</p>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <p className="text-sm font-semibold">Negociador:</p>
+                  <p className="rounded-full bg-white text-[#751B1E] px-2 font-semibold">{negociacaoCount}</p>
+                </div>
+
               </div>
-            )
-          )}
+            </div>
+          ))}
         </div>
       </div>
     </div>

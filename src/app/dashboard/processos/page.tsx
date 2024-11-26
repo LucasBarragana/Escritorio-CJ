@@ -423,7 +423,7 @@ export default function ProcessoPage() {
             <th className="px-4 py-2">SDR</th>
             <th className="px-4 py-2">Área</th>
             <th className="px-4 py-2">Status</th>
-            <th className="px-4 py-2">Contrato Fechado</th>
+            <th className="px-4 py-2">Contrato</th>
             <th className="px-4 py-2">Qualificação</th>
             <th className="px-4 py-2">Ações</th>
           </tr>
