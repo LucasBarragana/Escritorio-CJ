@@ -1,4 +1,5 @@
 'use client';
+
 import { useState, useEffect } from 'react';
 
 interface SDR {
@@ -11,48 +12,98 @@ export default function SDRPage() {
   const [sdrs, setSdrs] = useState<SDR[]>([]);
   const [nome, setNome] = useState('');
   const [cargo, setCargo] = useState('');
-  const [editingSdrId, setEditingSdrId] = useState<string | null>(null); // ID do SDR sendo editado
+  const [editingSdrId, setEditingSdrId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false); // Novo estado para controle de carregamento
+  const [error, setError] = useState<string | null>(null); // Novo estado para mensagens de erro
+
+  const API_URL = '/api/sdrs';
 
   useEffect(() => {
-    const storedSdrs = localStorage.getItem('sdrs');
-    if (storedSdrs) {
-      setSdrs(JSON.parse(storedSdrs));
-    }
-  }, []);
+    const fetchSdrs = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) {
+          throw new Error('Erro ao carregar os SDRs');
+        }
+        const data = await response.json();
+        setSdrs(data);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handleAddOrUpdateSdr = (e: React.FormEvent) => {
+    fetchSdrs();
+  }, [API_URL]);
+
+  const handleAddOrUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setError(null);
 
-    if (editingSdrId) {
-      // Atualizar SDR existente
-      const updatedSdrs = sdrs.map((sdr) =>
-        sdr.id === editingSdrId ? { ...sdr, nome, cargo } : sdr
+    const sdrData = { nome, cargo, id: editingSdrId };
+
+    try {
+      const response = await fetch(API_URL, {
+        method: editingSdrId ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sdrData),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          editingSdrId ? 'Erro ao atualizar o SDR' : 'Erro ao adicionar o SDR'
+        );
+      }
+
+      const updatedSdr = await response.json();
+
+      setSdrs((prev) =>
+        editingSdrId
+          ? prev.map((item) => (item.id === editingSdrId ? updatedSdr : item))
+          : [...prev, updatedSdr]
       );
-      setSdrs(updatedSdrs);
-      localStorage.setItem('sdrs', JSON.stringify(updatedSdrs));
-      setEditingSdrId(null);
-    } else {
-      // Adicionar novo SDR
-      const newSdr = { id: Date.now().toString(), nome, cargo };
-      const updatedSdrs = [...sdrs, newSdr];
-      setSdrs(updatedSdrs);
-      localStorage.setItem('sdrs', JSON.stringify(updatedSdrs));
-    }
 
-    setNome('');
-    setCargo('');
+      setNome('');
+      setCargo('');
+      setEditingSdrId(null);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleEditSdr = (sdr: SDR) => {
+  const handleEdit = (sdr: SDR) => {
     setEditingSdrId(sdr.id);
     setNome(sdr.nome);
     setCargo(sdr.cargo);
   };
 
-  const handleDeleteSdr = (sdrId: string) => {
-    const updatedSdrs = sdrs.filter((sdr) => sdr.id !== sdrId);
-    setSdrs(updatedSdrs);
-    localStorage.setItem('sdrs', JSON.stringify(updatedSdrs));
+  const handleDelete = async (id: string) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(API_URL, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao deletar o SDR');
+      }
+
+      setSdrs((prev) => prev.filter((item) => item.id !== id));
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -60,7 +111,8 @@ export default function SDRPage() {
       <h2 className="text-2xl font-semibold mb-6">
         {editingSdrId ? 'Editar SDR' : 'Cadastrar Novo SDR'}
       </h2>
-      <form onSubmit={handleAddOrUpdateSdr} className="mb-6">
+      {error && <p className="text-red-600 mb-4">{error}</p>}
+      <form onSubmit={handleAddOrUpdate} className="mb-6">
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700">Nome</label>
           <input
@@ -84,36 +136,33 @@ export default function SDRPage() {
         <button
           type="submit"
           className="w-full py-2 bg-[#751B1E] text-white rounded-lg hover:bg-gray-600"
+          disabled={loading}
         >
           {editingSdrId ? 'Atualizar SDR' : 'Adicionar SDR'}
         </button>
       </form>
       <h3 className="text-xl font-semibold mb-4">SDRs Cadastrados</h3>
+      {loading && <p>Carregando...</p>}
       <ul>
         {sdrs.map((sdr) => (
           <li
             key={sdr.id}
-            className="flex justify-between space-x-10 items-center p-4 mb-2 bg-gray-100 rounded-md"
+            className="flex justify-between items-center gap-20 p-4 mb-2 bg-gray-100 rounded-md"
           >
-            <div>
-              {sdr.nome} - {sdr.cargo}
-            </div>
+            <span>{sdr.nome} - {sdr.cargo}</span>
             <div>
               <button
-                onClick={() => handleEditSdr(sdr)}
+                onClick={() => handleEdit(sdr)}
                 className="mr-2 px-4 py-2 rounded hover:bg-gray-200"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                </svg>
+                Editar
               </button>
               <button
-                onClick={() => handleDeleteSdr(sdr.id)}
+                onClick={() => handleDelete(sdr.id)}
                 className="px-4 py-2 rounded hover:bg-gray-200"
+                disabled={loading}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                </svg>
+                Excluir
               </button>
             </div>
           </li>

@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Advogado {
+  id            String     @id @default(uuid())
+  nome          String
+  especialidade String
+  processos     Processo[] @relation("ProcessoAdvogado")
+  fechamentos   Processo[] @relation("ProcessoFechamento")
+}
+
+model SDR {
+  id        String     @id @default(uuid())
+  nome      String
+  cargo     String
+  processos Processo[]
+}
+
+model Especialidade {
+  id              String     @id @default(uuid())
+  nome            String
+  backgroundColor String
+  processos       Processo[]
+}
+
+model Status {
+  id              String     @id @default(uuid())
+  nome            String
+  backgroundColor String
+  processos       Processo[]
+}
+
+model ContratoFechado {
+  id              String     @id @default(uuid())
+  nome            String
+  backgroundColor String
+  processos       Processo[]
+}
+
+model Processo {
+  id                String   @id @default(uuid())
+  nomeLead          String
+  telefone          String
+  data              DateTime
+  advogadoId        String?
+  sdrId             String?
+  especialidadeId   String?
+  statusId          String?
+  contratoFechadoId String?
+  qualificacao      String?
+  fechamentoId      String?
+
+  advogado        Advogado?        @relation("ProcessoAdvogado", fields: [advogadoId], references: [id])
+  sdr             SDR?             @relation(fields: [sdrId], references: [id])
+  especialidade   Especialidade?   @relation(fields: [especialidadeId], references: [id])
+  status          Status?          @relation(fields: [statusId], references: [id])
+  contratoFechado ContratoFechado? @relation(fields: [contratoFechadoId], references: [id])
+  fechamento      Advogado?        @relation("ProcessoFechamento", fields: [fechamentoId], references: [id])
+}

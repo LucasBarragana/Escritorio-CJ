@@ -79,27 +79,25 @@ export default function ProcessoPage() {
   );
 
   useEffect(() => {
-    const storedLeads = localStorage.getItem('leads');
-    const storedAdvogados = localStorage.getItem('advogados');
-    const storedSdrs = localStorage.getItem('sdrs');
-    const storedProcessos = localStorage.getItem('processos');
-    const storedEspecialidades = localStorage.getItem('especialidades');
-    const storedStatuses = localStorage.getItem('statuses');
-    const storedContratos = localStorage.getItem('contratos');
+    // Substitua as chamadas de localStorage por requisições para o servidor que irá usar Prisma
+    const fetchData = async () => {
+      const resAdvogados = await fetch('/api/advogados');
+      const resSdrs = await fetch('/api/sdrs');
+      const resProcessos = await fetch('/api/processos');
+      const resEspecialidades = await fetch('/api/especialidades');
+      const resStatuses = await fetch('/api/status');
+      const resContratos = await fetch('/api/contratos');
 
-    if (storedLeads) setLeads(JSON.parse(storedLeads));
-    if (storedAdvogados) setAdvogados(JSON.parse(storedAdvogados));
-    if (storedSdrs) setSdrs(JSON.parse(storedSdrs));
-    if (storedEspecialidades) {
-      setEspecialidades(JSON.parse(storedEspecialidades));
-    }
-    if (storedStatuses) {
-      setStatuses(JSON.parse(storedStatuses));
-      if (storedContratos) {
-        setContratos(JSON.parse(storedContratos));
-      }      
-    }
-    if (storedProcessos) setProcessos(JSON.parse(storedProcessos));
+      
+      setAdvogados(await resAdvogados.json());
+      setSdrs(await resSdrs.json());
+      setProcessos(await resProcessos.json());
+      setEspecialidades(await resEspecialidades.json());
+      setStatuses(await resStatuses.json());
+      setContratos(await resContratos.json());
+    };
+
+    fetchData();
   }, []);
 
     // Função para obter a cor do status selecionado
@@ -133,50 +131,35 @@ export default function ProcessoPage() {
     }
   };
 
-  const handleAddOrUpdateProcesso = (e: React.FormEvent) => {
+  // Função para salvar um novo processo ou editar
+  const handleAddOrUpdateProcesso = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const newProcesso = {
-      id: editingProcessoId || crypto.randomUUID(),
+      id: crypto.randomUUID(),
       nomeLead,
       telefone,
       data,
-      advogado: advogados.find((advogado) => advogado.id === advogadoId)?.nome || '',
-      sdr: sdrs.find((sdr) => sdr.id === sdrId)?.nome || '',
-      especialidade: especialidades.find((item) => item.id === especialidade)?.nome || '',
-      status: statuses.find((item) => item.id === status)?.nome || '',
-      contratoFechado: contratos.find((item) => item.id === contratoFechado)?.nome || '',
+      advogadoId,
+      sdrId,
+      especialidade,
+      status,
+      contratoFechado,
       qualificacao,
-      fechamento: advogados.find((advogado) => advogado.id === fechamento)?.nome || '',
+      fechamento,
     };
 
-    let updatedProcessos;
+    // Salvar no banco via API (usar Prisma no backend)
+    const res = await fetch('/api/processos', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(newProcesso),
+    });
 
-    if (editingProcessoId) {
-      // Atualizar processo existente
-      updatedProcessos = processos.map((processo) =>
-        processo.id === editingProcessoId ? newProcesso : processo
-      );
-    } else {
-      // Adicionar novo processo
-      updatedProcessos = [...processos, newProcesso];
-    }
-
-    setProcessos(updatedProcessos); // Atualize o estado aqui
-    localStorage.setItem('processos', JSON.stringify(updatedProcessos)); // Armazene o estado atualizado no localStorage
-
-    // Resetar o formulário
-    setNomeLead('');
-    setTelefone('');
-    setData('');
-    setAdvogadoId('');
-    setSdrId('');
-    setEspecialidade('');
-    setStatus('');
-    setContratoFechado('');
-    setQualificacao('');
-    setFechamento('');
-    setEditingProcessoId(null); // Limpar o ID de edição
+    const savedProcesso = await res.json();
+    setProcessos([...processos, savedProcesso]);
   };
 
   const handleEditProcesso = (processo: Processo) => {
