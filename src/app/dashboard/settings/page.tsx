@@ -1,10 +1,10 @@
 'use client';
 import { useState } from 'react';
 import Advogados from '@/app/components/advogados';
-import SDRPage from '@/app/components/sdr';
 import EspecialidadePage from '@/app/components/especialits';
 import StatusPage from '@/app/components/status';
 import ContratoFechadoPage from '@/app/components/contractdeal';
+import RepresentantePage from '@/app/components/representantes';
 
 export default function Settings() {
   const [selectedComponent, setSelectedComponent] = useState<string | null>(null);
@@ -22,7 +22,7 @@ export default function Settings() {
             Gerenciar Equipe de Advogados
           </button>
           <button
-            onClick={() => setSelectedComponent('sdr')}
+            onClick={() => setSelectedComponent('representantes')}
             className="p-4 text-white bg-gray-500 rounded hover:bg-gray-600"
           >
             Gerenciar Equipe SDR
@@ -50,7 +50,7 @@ export default function Settings() {
         {/* Renderiza o formulário do componente selecionado */}
         <div className="p-4  border-gray-300 rounded-md">
           {selectedComponent === 'advogados' && <Advogados />}
-          {selectedComponent === 'sdr' && <SDRPage />}
+          {selectedComponent === 'representantes' && <RepresentantePage />}
           {selectedComponent === 'especialits' && <div><EspecialidadePage /></div>}
           {selectedComponent === 'status' && <div><StatusPage /></div>}
           {selectedComponent === 'contractdeal' && <div><ContratoFechadoPage /></div>}

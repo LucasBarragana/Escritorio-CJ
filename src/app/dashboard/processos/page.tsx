@@ -1,3 +1,4 @@
+
 'use client'
 import { useState, useEffect } from 'react';
 
@@ -14,7 +15,7 @@ interface Advogado {
   especialidade: string;
 }
 
-interface SDR {
+interface Representante {
   id: string;
   nome: string;
   cargo: string;
@@ -43,30 +44,30 @@ interface Processo {
   nomeLead: string;
   telefone: string;
   data: string;
-  advogado: string;
-  sdr: string;
-  especialidade: string;
-  status: string;
-  contratoFechado: string;
+  advogadoId: string;
+  representanteId: string;
+  especialidadeId: string;
+  statusId: string;
+  contratoFechadoId: string;
   qualificacao: string;
-  fechamento: string;
+  fechamentoId: string;
 }
 
 export default function ProcessoPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [advogados, setAdvogados] = useState<Advogado[]>([]);
-  const [sdrs, setSdrs] = useState<SDR[]>([]);
+  const [representantes, setRepresentantes] = useState<Representante[]>([]);
   const [processos, setProcessos] = useState<Processo[]>([]);
   const [nomeLead, setNomeLead] = useState('');
   const [telefone, setTelefone] = useState('');
   const [data, setData] = useState('');
   const [advogadoId, setAdvogadoId] = useState('');
-  const [sdrId, setSdrId] = useState('');
-  const [especialidade, setEspecialidade] = useState('');
-  const [status, setStatus] = useState('');
-  const [contratoFechado, setContratoFechado] = useState('');
+  const [representanteId, setRepresentanteId] = useState('');
+  const [especialidadeId, setEspecialidadeId] = useState('');
+  const [statusId, setStatusId] = useState('');
+  const [contratoFechadoId, setContratoFechadoId] = useState('');
   const [qualificacao, setQualificacao] = useState('');
-  const [fechamento, setFechamento] = useState('');
+  const [fechamentoId, setFechamentoId] = useState('');
   const [especialidades, setEspecialidades] = useState<Especialidade[]>([]);
   const [statuses, setStatuses] = useState<Status[]>([]);
   const [contratos, setContratos] = useState<ContratoFechado[]>([]);
@@ -74,15 +75,52 @@ export default function ProcessoPage() {
   const [editingProcessoId, setEditingProcessoId] = useState<string | null>(null);
   const [selectedLead, setSelectedLead] = useState<Processo | null>(null); // Para pop-up
   const [searchQuery, setSearchQuery] = useState('');
-  const filteredProcessos = processos.filter((processo) =>
-    processo.nomeLead.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+
+  // Estado para armazenar o campo selecionado para pesquisa
+const [searchField, setSearchField] = useState<string>('nomeLead');
+
+  // Atualização da lógica de filtragem
+  const filteredProcessos = processos.filter((processo) => {
+    let fieldValue;
+
+    // Tratar campos específicos baseados em IDs
+    if (searchField === 'advogadoId') {
+      const advogado = advogados.find((adv) => adv.id === processo.advogadoId);
+      fieldValue = advogado?.nome;
+    } else if (searchField === 'representanteId') {
+      const representante = representantes.find(
+        (rep) => rep.id === processo.representanteId
+      );
+      fieldValue = representante?.nome;
+    } else if (searchField === 'especialidadeId') {
+      const especialidade = especialidades.find(
+        (esp) => esp.id === processo.especialidadeId
+      );
+      fieldValue = especialidade?.nome;
+    } else if (searchField === 'statusId') {
+      const status = statuses.find((st) => st.id === processo.statusId);
+      fieldValue = status?.nome;
+    } else if (searchField === 'contratoFechadoId') {
+      const contrato = contratos.find(
+        (cf) => cf.id === processo.contratoFechadoId
+      );
+      fieldValue = contrato?.nome;
+    } else {
+      // Outros campos são tratados diretamente
+      fieldValue = processo[searchField as keyof typeof processo];
+    }
+
+    return fieldValue
+      ?.toString()
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+  });
+
 
   useEffect(() => {
-    // Substitua as chamadas de localStorage por requisições para o servidor que irá usar Prisma
     const fetchData = async () => {
       const resAdvogados = await fetch('/api/advogados');
-      const resSdrs = await fetch('/api/sdrs');
+      const resRepresentantes = await fetch('/api/representantes');
       const resProcessos = await fetch('/api/processos');
       const resEspecialidades = await fetch('/api/especialidades');
       const resStatuses = await fetch('/api/status');
@@ -90,7 +128,7 @@ export default function ProcessoPage() {
 
       
       setAdvogados(await resAdvogados.json());
-      setSdrs(await resSdrs.json());
+      setRepresentantes(await resRepresentantes.json());
       setProcessos(await resProcessos.json());
       setEspecialidades(await resEspecialidades.json());
       setStatuses(await resStatuses.json());
@@ -101,20 +139,7 @@ export default function ProcessoPage() {
   }, []);
 
     // Função para obter a cor do status selecionado
-    const getEspecialidadeBackgroundColor = (especialidadeName: string) => {
-      const especialidade = especialidades.find((item) => item.nome === especialidadeName);
-      return especialidade ? especialidade.backgroundColor : '#ffffff';
-    };
 
-    const getStatusBackgroundColor = (statusName: string) => {
-      const status = statuses.find((item) => item.nome === statusName);
-      return status ? status.backgroundColor : '#ffffff';
-    };
-
-    const getContractBackgroundColor = (contratoFechadoName: string) => {
-      const contratoFechado = contratos.find((item) => item.nome === contratoFechadoName);
-      return contratoFechado ? contratoFechado.backgroundColor : '#ffffff';
-    };
   
 
     // Verifica se o nomeLead corresponde a algum lead e preenche o telefone
@@ -131,25 +156,55 @@ export default function ProcessoPage() {
     }
   };
 
-  // Função para salvar um novo processo ou editar
-  const handleAddOrUpdateProcesso = async (e: React.FormEvent) => {
-    e.preventDefault();
+ // Função para salvar um novo processo ou editar
+const handleAddOrUpdateProcesso = async (e: React.FormEvent) => {
+  e.preventDefault();
 
+  if (editingProcessoId) {
+    const updatedProcesso = {
+      id: editingProcessoId,
+      nomeLead,
+      telefone,
+      data,
+      advogadoId,
+      representanteId,
+      especialidadeId,
+      statusId,
+      contratoFechadoId,
+      qualificacao,
+      fechamentoId,
+    };
+
+    const res = await fetch(`/api/processos/${editingProcessoId}`, { // Corrigido o uso da interpolação
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updatedProcesso),
+    });
+
+    const savedProcesso = await res.json();
+    setProcessos(
+      processos.map((processo) =>
+        processo.id === editingProcessoId ? savedProcesso : processo
+      )
+    );
+    setEditingProcessoId(null);
+  } else {
     const newProcesso = {
       id: crypto.randomUUID(),
       nomeLead,
       telefone,
       data,
       advogadoId,
-      sdrId,
-      especialidade,
-      status,
-      contratoFechado,
+      representanteId,
+      especialidadeId,
+      statusId,
+      contratoFechadoId,
       qualificacao,
-      fechamento,
+      fechamentoId,
     };
 
-    // Salvar no banco via API (usar Prisma no backend)
     const res = await fetch('/api/processos', {
       method: 'POST',
       headers: {
@@ -160,27 +215,46 @@ export default function ProcessoPage() {
 
     const savedProcesso = await res.json();
     setProcessos([...processos, savedProcesso]);
-  };
+  }
+
+  resetForm();
+};
+
+
 
   const handleEditProcesso = (processo: Processo) => {
-    setEditingProcessoId(processo.id); // Setar o processo para edição
+    setEditingProcessoId(processo.id);
     setNomeLead(processo.nomeLead);
     setTelefone(processo.telefone);
     setData(processo.data);
-    setAdvogadoId(advogados.find((advogado) => advogado.nome === processo.advogado)?.id || '');
-    setSdrId(sdrs.find((sdr) => sdr.nome === processo.sdr)?.id || '');
-    setEspecialidade(especialidades.find((especialidade) => especialidade.nome === processo.especialidade)?.id || '');
-    setStatus(statuses.find((status) => status.nome === processo.status)?.id || '');
-    setContratoFechado(contratos.find((contratoFechado) => contratoFechado.nome === processo.contratoFechado)?.id || '');
+    setAdvogadoId(processo.advogadoId);
+    setRepresentanteId(processo.representanteId);
+    setEspecialidadeId(processo.especialidadeId);
+    setStatusId(processo.statusId);
+    setContratoFechadoId(processo.contratoFechadoId);
     setQualificacao(processo.qualificacao);
-    setFechamento(advogados.find((advogado) => advogado.nome === processo.fechamento)?.id || '');
+    setFechamentoId(processo.fechamentoId);
   };
 
-  const handleDeleteProcesso = (processoId: string) => {
-    const updatedProcessos = processos.filter((processo) => processo.id !== processoId);
-    setProcessos(updatedProcessos); // Atualize o estado
-    localStorage.setItem('processos', JSON.stringify(updatedProcessos)); // Armazene o estado atualizado no localStorage
+  const resetForm = () => {
+    setNomeLead('');
+    setTelefone('');
+    setData('');
+    setAdvogadoId('');
+    setRepresentanteId('');
+    setEspecialidadeId('');
+    setStatusId('');
+    setContratoFechadoId('');
+    setQualificacao('');
+    setFechamentoId('');
   };
+
+ // Corrigir o uso do localStorage no handleDeleteProcesso
+const handleDeleteProcesso = (processoId: string) => {
+  const updatedProcessos = processos.filter((processo) => processo.id !== processoId);
+  setProcessos(updatedProcessos); // Atualize o estado
+  localStorage.setItem('processos', JSON.stringify(updatedProcessos)); // Corrigido o nome da função
+};
 
   // Função para abrir a plataforma de conversa DIgisac
   const handleOpenChat = async (telefone: string) => {
@@ -199,7 +273,7 @@ export default function ProcessoPage() {
       });
 
       if (response.ok) {
-        alert(`Conversa iniciada com o número ${telefone} no Digisac!`);
+        alert("Conversa iniciada com o número ${telefone} no Digisac!");
       } else {
         const errorData = await response.json();
         console.error('Erro ao abrir conversa:', errorData);
@@ -211,8 +285,16 @@ export default function ProcessoPage() {
     }
   };
 
+  // Formatação da data
+  const formatDate = (isoDate: string) => {
+    const date = new Date(isoDate);
+    return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1)
+      .toString()
+      .padStart(2, '0')}/${date.getFullYear()}`;
+    };
+
   return (
-    <div className="p-10">
+    <div className="p-10"> 
       <h2 className="text-2xl font-semibold mb-6">{editingProcessoId ? 'Editar Processo' : 'Cadastrar Novo Processo'}</h2>
       <form onSubmit={handleAddOrUpdateProcesso} className="flex space-x-10 mb-6">
         <div>
@@ -278,8 +360,8 @@ export default function ProcessoPage() {
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">Responsável</label>
             <select
-              value={fechamento}
-              onChange={(e) => setFechamento(e.target.value)}
+              value={fechamentoId}
+              onChange={(e) => setFechamentoId(e.target.value)}
               className="w-full p-2 mt-1 border border-gray-300 rounded-md"
               required
             >
@@ -295,15 +377,15 @@ export default function ProcessoPage() {
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">SDR</label>
             <select
-              value={sdrId}
-              onChange={(e) => setSdrId(e.target.value)}
+              value={representanteId}
+              onChange={(e) => setRepresentanteId(e.target.value)}
               className="w-full p-2 mt-1 border border-gray-300 rounded-md"
               required
             >
               <option value="">Equipe SDR</option>
-              {sdrs.map((sdr) => (
-                <option key={sdr.id} value={sdr.id}>
-                  {sdr.nome}
+              {representantes.map((representante) => (
+                <option key={representante.id} value={representante.id}>
+                  {representante.nome}
                 </option>
               ))}
             </select>
@@ -314,14 +396,14 @@ export default function ProcessoPage() {
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">Área</label>
             <select
-              value={especialidade}
-              onChange={(e) => setEspecialidade(e.target.value)}
+              value={especialidadeId}
+              onChange={(e) => setEspecialidadeId(e.target.value)}
               className="w-full p-2 mt-1 border border-gray-300 rounded-md"
             >
               <option value="">Selecione a Especialidade</option>
-              {especialidades.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.nome}
+              {especialidades.map((especialidade) => (
+                <option key={especialidade.id} value={especialidade.id}>
+                  {especialidade.nome}
                 </option>
               ))}
             </select>
@@ -330,14 +412,14 @@ export default function ProcessoPage() {
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">Status</label>
               <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
+              value={statusId}
+              onChange={(e) => setStatusId(e.target.value)}
               className="w-full p-2 mt-1 border border-gray-300 rounded-md"
             >
               <option value="">Selecione o Status</option>
-              {statuses.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.nome}
+              {statuses.map((especialidade) => (
+                <option key={especialidade.id} value={especialidade.id}>
+                  {especialidade.nome}
                 </option>
               ))}
           </select>
@@ -346,14 +428,14 @@ export default function ProcessoPage() {
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">Contrato Fechado</label>
             <select
-              value={contratoFechado}
-              onChange={(e) => setContratoFechado(e.target.value)}
+              value={contratoFechadoId}
+              onChange={(e) => setContratoFechadoId(e.target.value)}
               className="w-full p-2 mt-1 border border-gray-300 rounded-md"
             >
               <option value="">Selecione o Contrato Fechado</option>
-              {contratos.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.nome}
+              {contratos.map((especialidade) => (
+                <option key={especialidade.id} value={especialidade.id}>
+                  {especialidade.nome}
                 </option>
               ))}
           </select>
@@ -384,16 +466,36 @@ export default function ProcessoPage() {
       </form>
 
       <h3 className="text-xl font-semibold mb-4">Processos Cadastrados</h3>
-      <div className="mb-4">
+      <div className='flex gap-8 mb-4'>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Pesquisar por</label>
+          <select
+            value={searchField}
+            onChange={(e) => setSearchField(e.target.value)}
+            className="p-2 mt-1 border border-gray-300 rounded-md"
+          >
+            <option value="nomeLead">Nome do Lead</option>
+            <option value="telefone">Telefone</option>
+            <option value="data">Data</option>
+            <option value="advogadoId">Negociador</option>
+            <option value="representanteId">SDR</option>
+            <option value="especialidadeId">Área</option>
+            <option value="statusId">Status</option>
+            <option value="contratoFechadoId">Contrato Fechado</option>
+            <option value="qualificacao">Qualificação</option>
+          </select>
+        </div>
+        <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700">Pesquisar</label>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Pesquisar pelo nome do lead"
+            placeholder={`Pesquisar por ${searchField}`}
             className="p-2 mt-1 border border-gray-300 rounded-md"
           />
         </div>
+      </div>
         
       <div className='w-full h-[4px] bg-red-900'></div>
       <table className="min-w-full table-auto border-collapse">
@@ -429,32 +531,48 @@ export default function ProcessoPage() {
                     Digisac
                   </button>
               </td>
-              <td className="border-t border-t-[#771A1D] px-4 py-2 text-sm">{processo.data}</td>
-              <td className="border-t border-t-[#771A1D] px-4 py-2 text-sm">{processo.advogado}</td>
-              <td className="border-t border-t-[#771A1D] px-4 py-2 text-sm">{processo.fechamento}</td>
-              <td className="border-t border-t-[#771A1D] px-4 py-2 text-sm">{processo.sdr}</td>
+              <td className="border-t border-t-[#771A1D] px-4 py-2 text-sm">{formatDate(processo.data)}</td>
               <td className="border-t border-t-[#771A1D] px-4 py-2">
-                <p                  
-                  className="flex justify-center px-2 py-1 rounded text-xs font-semibold"
-                  style={{ backgroundColor: getEspecialidadeBackgroundColor(processo.status) }}
-                >
-                  {processo.especialidade}
-                </p>
+                {advogados.find((advogado) => advogado.id === processo.advogadoId)?.nome || 'N/A'}
               </td>
               <td className="border-t border-t-[#771A1D] px-4 py-2">
-                <p
-                  className="flex justify-center px-2 py-1 rounded text-xs font-semibold"
-                  style={{ backgroundColor: getStatusBackgroundColor(processo.status) }}
-                >
-                  {processo.status}
-                </p>
+                {advogados.find((advogado) => advogado.id === processo.fechamentoId)?.nome || 'N/A'}
               </td>
               <td className="border-t border-t-[#771A1D] px-4 py-2">
-                <p
-                  className="flex justify-center px-2 py-1 rounded text-xs font-semibold"
-                  style={{ backgroundColor: getContractBackgroundColor(processo.contratoFechado) }}
-                  >
-                    {processo.contratoFechado}</p>
+                {representantes.find((representante) => representante.id === processo.representanteId)?.nome || 'N/A'}
+              </td>
+              <td className="border-t border-t-[#771A1D] px-4 py-2">
+                <span
+                      className="px-2 py-1 rounded text-xs font-semibold"
+                      style={{
+                        backgroundColor: especialidades.find((e) => e.id === processo.especialidadeId)
+                          ?.backgroundColor || '#ffffff',
+                      }}
+                    >
+                      {especialidades.find((e) => e.id === processo.especialidadeId)?.nome || 'N/A'}
+                </span>
+              </td>
+              <td className="border-t border-t-[#771A1D] px-4 py-2">
+                <span
+                      className="px-2 py-1 rounded text-xs font-semibold"
+                      style={{
+                        backgroundColor: statuses.find((e) => e.id === processo.statusId)
+                          ?.backgroundColor || '#ffffff',
+                      }}
+                    >
+                      {statuses.find((e) => e.id === processo.statusId)?.nome || 'N/A'}
+                </span>
+              </td>
+              <td className="border-t border-t-[#771A1D] px-4 py-2">
+                <span
+                      className="px-2 py-1 rounded text-xs font-semibold"
+                      style={{
+                        backgroundColor: contratos.find((e) => e.id === processo.contratoFechadoId)
+                          ?.backgroundColor || '#ffffff',
+                      }}
+                    >
+                      {contratos.find((e) => e.id === processo.contratoFechadoId)?.nome || 'N/A'}
+                </span>
               </td>
               <td className="border-t border-t-[#771A1D] px-4 py-2">
                 <p className='flex justify-center px-2 py-1 bg-gray-200 rounded text-xs font-semibold'>{processo.qualificacao}</p>
@@ -486,7 +604,7 @@ export default function ProcessoPage() {
       </table>
       <div className='w-full h-[4px] bg-red-900'></div>
       {selectedLead && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 flex especialidades-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded shadow-md">
             <h3 className="text-lg font-semibold">Detalhes do Lead</h3>
             <p><strong>Nome:</strong> {selectedLead.nomeLead}</p>

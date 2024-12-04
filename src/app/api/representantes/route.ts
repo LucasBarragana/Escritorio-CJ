@@ -3,11 +3,11 @@ import prisma from '@/app/lib/prisma';
 
 export async function GET() {
   try {
-    const sdrs = await prisma.sdr.findMany();
-    return NextResponse.json(sdrs);
+    const representantes = await prisma.representante.findMany();
+    return NextResponse.json(representantes);
   } catch (error) {
     return NextResponse.json(
-      { message: 'Erro ao buscar SDRs' },
+      { message: 'Erro ao buscar Representantes' },
       { status: 500 }
     );
   }
@@ -24,13 +24,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const newSdr = await prisma.sdr.create({
+    const newRepresentante = await prisma.representante.create({
       data: { nome, cargo },
     });
-    return NextResponse.json(newSdr, { status: 201 });
+    return NextResponse.json(newRepresentante, { status: 201 });
   } catch (error) {
     return NextResponse.json(
-      { message: 'Erro ao criar SDR' },
+      { message: 'Erro ao criar Representante' },
       { status: 500 }
     );
   }
@@ -47,14 +47,14 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const updatedSdr = await prisma.sdr.update({
+    const updatedRepresentante = await prisma.representante.update({
       where: { id },
       data: { nome, cargo },
     });
-    return NextResponse.json(updatedSdr);
+    return NextResponse.json(updatedRepresentante);
   } catch (error) {
     return NextResponse.json(
-      { message: 'Erro ao atualizar SDR' },
+      { message: 'Erro ao atualizar Representante' },
       { status: 500 }
     );
   }
@@ -71,11 +71,11 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    await prisma.sdr.delete({ where: { id } });
-    return NextResponse.json({ message: 'SDR excluído com sucesso!' });
+    await prisma.representante.delete({ where: { id } });
+    return NextResponse.json({ message: 'Representante excluído com sucesso!' });
   } catch (error) {
     return NextResponse.json(
-      { message: 'Erro ao excluir SDR' },
+      { message: 'Erro ao excluir Representante' },
       { status: 500 }
     );
   }

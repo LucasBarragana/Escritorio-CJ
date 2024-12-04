@@ -5,6 +5,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Advogado {
@@ -15,11 +16,11 @@ model Advogado {
   fechamentos   Processo[] @relation("ProcessoFechamento")
 }
 
-model SDR {
+model Representante {
   id        String     @id @default(uuid())
   nome      String
   cargo     String
-  processos Processo[]
+  processos Processo[] @relation("ProcessoRepresentante")
 }
 
 model Especialidade {
@@ -44,22 +45,21 @@ model ContratoFechado {
 }
 
 model Processo {
-  id                String   @id @default(uuid())
-  nomeLead          String
-  telefone          String
-  data              DateTime
-  advogadoId        String?
-  sdrId             String?
-  especialidadeId   String?
-  statusId          String?
-  contratoFechadoId String?
-  qualificacao      String?
-  fechamentoId      String?
-
-  advogado        Advogado?        @relation("ProcessoAdvogado", fields: [advogadoId], references: [id])
-  sdr             SDR?             @relation(fields: [sdrId], references: [id])
-  especialidade   Especialidade?   @relation(fields: [especialidadeId], references: [id])
-  status          Status?          @relation(fields: [statusId], references: [id])
-  contratoFechado ContratoFechado? @relation(fields: [contratoFechadoId], references: [id])
-  fechamento      Advogado?        @relation("ProcessoFechamento", fields: [fechamentoId], references: [id])
+  id                 String           @id @default(uuid())
+  nomeLead           String
+  telefone           String
+  data               DateTime
+  advogadoId         String
+  advogado           Advogado?        @relation("ProcessoAdvogado", fields: [advogadoId], references: [id])
+  representanteId    String
+  representante      Representante?   @relation("ProcessoRepresentante", fields: [representanteId], references: [id])
+  especialidadeId    String
+  especialidade      Especialidade    @relation(fields: [especialidadeId], references: [id])
+  statusId           String
+  status             Status           @relation(fields: [statusId], references: [id])
+  contratoFechadoId  String
+  contratoFechado    ContratoFechado  @relation(fields: [contratoFechadoId], references: [id])
+  qualificacao       String
+  fechamentoId       String
+  fechamento         Advogado?        @relation("ProcessoFechamento", fields: [fechamentoId], references: [id])
 }

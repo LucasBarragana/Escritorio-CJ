@@ -1,83 +1,114 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import prisma from '@/app/lib/prisma';
+import { NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
 
-// Manipulador para listar, criar, atualizar e deletar processos
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === 'GET') {
-    try {
-      const processos = await prisma.processo.findMany({
-        include: {
-          advogado: true,
-          sdr: true,
-          especialidade: true,
-          status: true,
-          contratoFechado: true,
-        },
-      });
-      return res.status(200).json(processos);
-    } catch (error) {
-      return res.status(500).json({ error: 'Erro ao buscar processos' });
-    }
+const prisma = new PrismaClient();
+
+export async function GET() {
+  try {
+    const processos = await prisma.processo.findMany({
+      include: {
+        advogado: true,
+        representante: true,
+        especialidade: true,
+        status: true,
+        contratoFechado: true,
+      },
+    });
+    return NextResponse.json(processos);
+  } catch (error) {
+    return NextResponse.json(
+      { message: 'Erro ao buscar processos'},
+      { status: 500 }
+    );
   }
+}
 
-  if (req.method === 'POST') {
-    const { nomeLead, telefone, data, advogadoId, sdrId, especialidadeId, statusId, contratoFechadoId, qualificacao, fechamentoId } = req.body;
-    try {
-      const newProcesso = await prisma.processo.create({
-        data: {
-          nomeLead,
-          telefone,
-          data: new Date(data), // Garantindo que a data seja um objeto Date
-          advogadoId,
-          sdrId,
-          especialidadeId,
-          statusId,
-          contratoFechadoId,
-          qualificacao,
-          fechamentoId,
-        },
-      });
-      return res.status(201).json(newProcesso);
-    } catch (error) {
-      return res.status(500).json({ error: 'Erro ao criar processo' });
+export async function POST(request: Request) {
+  try {
+    const {
+      nomeLead,
+      telefone,
+      data,
+      advogadoId,
+      representanteId,
+      especialidadeId,
+      statusId,
+      contratoFechadoId,
+      qualificacao,
+      fechamentoId,
+    } = await request.json();
+
+    if (!nomeLead || !telefone || !data) {
+      return NextResponse.json(
+        { message: 'Nome do lead, telefone e data são obrigatórios.' },
+        { status: 400 }
+      );
     }
-  }
 
-  if (req.method === 'PUT') {
-    const { id, nomeLead, telefone, data, advogadoId, sdrId, especialidadeId, statusId, contratoFechadoId, qualificacao, fechamentoId } = req.body;
-    try {
-      const updatedProcesso = await prisma.processo.update({
-        where: { id },
-        data: {
-          nomeLead,
-          telefone,
-          data: new Date(data), // Garantindo que a data seja um objeto Date
-          advogadoId,
-          sdrId,
-          especialidadeId,
-          statusId,
-          contratoFechadoId,
-          qualificacao,
-          fechamentoId,
-        },
-      });
-      return res.status(200).json(updatedProcesso);
-    } catch (error) {
-      return res.status(500).json({ error: 'Erro ao atualizar processo' });
+    const novoProcesso = await prisma.processo.create({
+      data: {
+        nomeLead,
+        telefone,
+        data: new Date(data),
+        advogadoId, // Foreign key
+        representanteId, // Foreign key
+        especialidadeId, // Foreign key
+        statusId, // Foreign key
+        contratoFechadoId, // Foreign key
+        qualificacao,
+        fechamentoId, // Foreign key
+      },
+    });
+
+    return NextResponse.json(novoProcesso, { status: 201 });
+  } catch (error) {
+    console.error('Erro ao criar processo:', error);
+    return NextResponse.json(
+      { message: 'Erro ao criar processo' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request: Request) {
+  try {
+    const { id, ...data } = await request.json();
+
+    const processoAtualizado = await prisma.processo.update({
+      where: { id },
+      data,
+    });
+
+    return NextResponse.json(processoAtualizado);
+  } catch (error) {
+    console.error('Erro ao atualizar processo:', error);
+    return NextResponse.json(
+      { message: 'Erro ao atualizar processo' },
+      { status: 500 }
+    );
+  }
+}
+
+
+export async function DELETE(request: Request) {
+  try {
+    const { id } = await request.json();
+
+    if (!id) {
+      return NextResponse.json(
+        { message: 'ID é obrigatório para exclusão.' },
+        { status: 400 }
+      );
     }
-  }
 
-  if (req.method === 'DELETE') {
-    const { id } = req.body;
-    try {
-      await prisma.processo.delete({
-        where: { id },
-      });
-      return res.status(204).end();
-    } catch (error) {
-      return res.status(500).json({ error: 'Erro ao deletar processo' });
-    }
+    await prisma.processo.delete({
+      where: { id },
+    });
+    return NextResponse.json({ message: 'Processo excluído com sucesso!' });
+  } catch (error) {
+    return NextResponse.json(
+      { message: 'Erro ao excluir processo'},
+      { status: 500 }
+    );
   }
-
-  return res.status(405).json({ error: 'Método não permitido' });
 }

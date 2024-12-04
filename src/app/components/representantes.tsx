@@ -2,33 +2,33 @@
 
 import { useState, useEffect } from 'react';
 
-interface SDR {
+interface Representante {
   id: string;
   nome: string;
   cargo: string;
 }
 
-export default function SDRPage() {
-  const [sdrs, setSdrs] = useState<SDR[]>([]);
+export default function RepresentantePage() {
+  const [representantes, setRepresentantes] = useState<Representante[]>([]);
   const [nome, setNome] = useState('');
   const [cargo, setCargo] = useState('');
-  const [editingSdrId, setEditingSdrId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false); // Novo estado para controle de carregamento
-  const [error, setError] = useState<string | null>(null); // Novo estado para mensagens de erro
+  const [editingRepresentanteId, setEditingRepresentanteId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const API_URL = '/api/sdrs';
+  const API_URL = '/api/representantes';
 
   useEffect(() => {
-    const fetchSdrs = async () => {
+    const fetchRepresentantes = async () => {
       setLoading(true);
       setError(null);
       try {
         const response = await fetch(API_URL);
         if (!response.ok) {
-          throw new Error('Erro ao carregar os SDRs');
+          throw new Error('Erro ao carregar os representantes');
         }
         const data = await response.json();
-        setSdrs(data);
+        setRepresentantes(data);
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -36,7 +36,7 @@ export default function SDRPage() {
       }
     };
 
-    fetchSdrs();
+    fetchRepresentantes();
   }, [API_URL]);
 
   const handleAddOrUpdate = async (e: React.FormEvent) => {
@@ -44,32 +44,34 @@ export default function SDRPage() {
     setLoading(true);
     setError(null);
 
-    const sdrData = { nome, cargo, id: editingSdrId };
+    const representanteData = { nome, cargo, id: editingRepresentanteId };
 
     try {
       const response = await fetch(API_URL, {
-        method: editingSdrId ? 'PUT' : 'POST',
+        method: editingRepresentanteId ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(sdrData),
+        body: JSON.stringify(representanteData),
       });
 
       if (!response.ok) {
         throw new Error(
-          editingSdrId ? 'Erro ao atualizar o SDR' : 'Erro ao adicionar o SDR'
+          editingRepresentanteId
+            ? 'Erro ao atualizar o representante'
+            : 'Erro ao adicionar o representante'
         );
       }
 
-      const updatedSdr = await response.json();
+      const updatedRepresentante = await response.json();
 
-      setSdrs((prev) =>
-        editingSdrId
-          ? prev.map((item) => (item.id === editingSdrId ? updatedSdr : item))
-          : [...prev, updatedSdr]
+      setRepresentantes((prev) =>
+        editingRepresentanteId
+          ? prev.map((item) => (item.id === editingRepresentanteId ? updatedRepresentante : item))
+          : [...prev, updatedRepresentante]
       );
 
       setNome('');
       setCargo('');
-      setEditingSdrId(null);
+      setEditingRepresentanteId(null);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -77,10 +79,10 @@ export default function SDRPage() {
     }
   };
 
-  const handleEdit = (sdr: SDR) => {
-    setEditingSdrId(sdr.id);
-    setNome(sdr.nome);
-    setCargo(sdr.cargo);
+  const handleEdit = (representante: Representante) => {
+    setEditingRepresentanteId(representante.id);
+    setNome(representante.nome);
+    setCargo(representante.cargo);
   };
 
   const handleDelete = async (id: string) => {
@@ -95,10 +97,10 @@ export default function SDRPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Erro ao deletar o SDR');
+        throw new Error('Erro ao deletar o representante');
       }
 
-      setSdrs((prev) => prev.filter((item) => item.id !== id));
+      setRepresentantes((prev) => prev.filter((item) => item.id !== id));
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -109,7 +111,7 @@ export default function SDRPage() {
   return (
     <div className="px-8">
       <h2 className="text-2xl font-semibold mb-6">
-        {editingSdrId ? 'Editar SDR' : 'Cadastrar Novo SDR'}
+        {editingRepresentanteId ? 'Editar Representante' : 'Cadastrar Novo Representante'}
       </h2>
       {error && <p className="text-red-600 mb-4">{error}</p>}
       <form onSubmit={handleAddOrUpdate} className="mb-6">
@@ -138,27 +140,27 @@ export default function SDRPage() {
           className="w-full py-2 bg-[#751B1E] text-white rounded-lg hover:bg-gray-600"
           disabled={loading}
         >
-          {editingSdrId ? 'Atualizar SDR' : 'Adicionar SDR'}
+          {editingRepresentanteId ? 'Atualizar Representante' : 'Adicionar Representante'}
         </button>
       </form>
-      <h3 className="text-xl font-semibold mb-4">SDRs Cadastrados</h3>
+      <h3 className="text-xl font-semibold mb-4">Representantes Cadastrados</h3>
       {loading && <p>Carregando...</p>}
       <ul>
-        {sdrs.map((sdr) => (
+        {representantes.map((representante) => (
           <li
-            key={sdr.id}
+            key={representante.id}
             className="flex justify-between items-center gap-20 p-4 mb-2 bg-gray-100 rounded-md"
           >
-            <span>{sdr.nome} - {sdr.cargo}</span>
+            <span>{representante.nome} - {representante.cargo}</span>
             <div>
               <button
-                onClick={() => handleEdit(sdr)}
+                onClick={() => handleEdit(representante)}
                 className="mr-2 px-4 py-2 rounded hover:bg-gray-200"
               >
                 Editar
               </button>
               <button
-                onClick={() => handleDelete(sdr.id)}
+                onClick={() => handleDelete(representante.id)}
                 className="px-4 py-2 rounded hover:bg-gray-200"
                 disabled={loading}
               >
