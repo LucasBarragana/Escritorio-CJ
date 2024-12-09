@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export default function Menu(){
     return(
-        <aside className="w-72 min-h-screen top-0 left-0 bg-[#252525] text-white overflow-y-auto">
+        <aside className="min-w-64 min-h-screen top-0 left-0 bg-[#252525] text-white overflow-y-auto">
             <nav className="p-4 fixed">
                 <ul>
                     <li>

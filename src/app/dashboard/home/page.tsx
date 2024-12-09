@@ -131,6 +131,13 @@ export default function Home() {
     ? processosMesAtual.filter((processo) => processo.especialidadeId === especialidadeSelecionada)
     : processosMesAtual;
 
+    // Ordenar os processos por data do mais atual para o mais antigo
+const processosOrdenados = processosFiltrados.sort((a, b) => {
+  const dataA = new Date(a.data).getTime();
+  const dataB = new Date(b.data).getTime();
+  return dataB - dataA; // Ordem decrescente
+});
+
   const resetFiltros = () => {
     setContratoSelecionado(null);
     setEspecialidadeSelecionada(null);
@@ -233,7 +240,7 @@ export default function Home() {
                 </tr>
               </thead>
               <tbody>
-                {processosFiltrados.map((processo) => (
+                {processosOrdenados.map((processo) => (
                   <tr key={processo.id}>
                     <td className="border-t border-t-[#771A1D] px-4 py-2">{processo.nomeLead}</td>
                     <td className="border-t border-t-[#771A1D] px-4 py-2">{formatDate(processo.data)}</td>
