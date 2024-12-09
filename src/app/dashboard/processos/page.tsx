@@ -276,7 +276,7 @@ export default function ProcessoPage() {
   });
 
   // Estado para armazenar o campo de pesquisa, campo de ordenação e ordem de ordenação
-const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+const [sortOrder] = useState<'asc' | 'desc'>('desc');
 
 // Função para ordenar a lista
 const sortedProjetos = [...filteredProcessos].sort((a, b) => {
