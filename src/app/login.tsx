@@ -12,22 +12,18 @@ export default function Login() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Definindo um usuário e senha básicos para teste
-    const validUsername = 'user';
-    const validPassword = '123';
+    const validUsername = 'CJ-SDR';
+    const validPassword = 'Christian&Jorge';
 
-    // Verificando se as credenciais estão corretas
     if (username === validUsername && password === validPassword) {
-      // Redireciona para a página inicial após o login bem-sucedido
       router.push('/dashboard/home');
     } else {
-      // Exibe uma mensagem de erro se as credenciais estiverem incorretas
       setErrorMessage('Usuário ou senha incorretos.');
     }
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+    <div className="fixed inset-0 z-50 flex justify-center items-center bg-gray-800 bg-opacity-50">
       <div className="bg-white p-8 rounded-lg shadow-lg w-96">
         <h2 className="text-2xl font-semibold text-center mb-6">Login</h2>
         {errorMessage && <p className="text-red-500 text-sm mb-4">{errorMessage}</p>}

@@ -28,6 +28,8 @@ export default function ContratoFechadoPage() {
         if (!response.ok) {
           throw new Error('Erro ao carregar os contratos');
         }
+        const data = await response.json();
+        setContratos(data); // Corrige para salvar os contratos no estado
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message);
@@ -38,9 +40,9 @@ export default function ContratoFechadoPage() {
         setLoading(false);
       }
     };
-
+  
     fetchContratos();
-  }, [API_URL]);
+  }, []);
 
   const handleAddOrUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
