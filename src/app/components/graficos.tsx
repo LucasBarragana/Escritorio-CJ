@@ -10,7 +10,7 @@ interface Processo {
   especialidade:  { id: number; nome: string; background: string };
   status:  { id: number; nome: string; background: string };
   contratoFechado:  { id: number; nome: string; background: string };
-  qualificacao: string;
+  qualificacao: { id: number; nome: string; background: string };
   data: string; // Formato ISO (YYYY-MM-DD)
 }
 
@@ -93,9 +93,9 @@ export default function Graficos({ processos }: Props) {
         processos.filter((p) => p.contratoFechado.nome === contrato).length
       );
 
-      const qualificacaoDisponiveis = [...new Set(processos.map((p) => p.qualificacao))];
+      const qualificacaoDisponiveis = [...new Set(processos.map((p) => p.qualificacao.nome))];
       const countqualificacaoDisponiveis = qualificacaoDisponiveis.map((qualificacao) =>
-        processos.filter((p) => p.qualificacao === qualificacao).length
+        processos.filter((p) => p.qualificacao.nome === qualificacao).length
       );
 
       createChart(
@@ -138,23 +138,29 @@ export default function Graficos({ processos }: Props) {
   }, [processos,chartRefs.contratoFechado, chartRefs.especialidade,chartRefs.qualificacao, chartRefs.status]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div>
+      <h1 className="text-2xl font-semibold mt-10 mb-6">Processos por Categoria</h1>
       <div>
-        <h2 className="text-lg font-semibold">Por Especialidade</h2>
-        <canvas ref={chartRefs.especialidade}></canvas>
-      </div>
-      <div>
-        <h2 className="text-lg font-semibold">Por Status</h2>
-        <canvas ref={chartRefs.status}></canvas>
-      </div>
-      <div>
-        <h2 className="text-lg font-semibold">Por Contrato Fechado</h2>
-        <canvas ref={chartRefs.contratoFechado}></canvas>
-      </div>
-      <div>
-        <h2 className="text-lg font-semibold">Por Qualificação</h2>
-        <canvas ref={chartRefs.qualificacao}></canvas>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div>
+            <h2 className="text-lg font-semibold">Por Especialidade</h2>
+            <canvas ref={chartRefs.especialidade}></canvas>
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold">Por Status</h2>
+            <canvas ref={chartRefs.status}></canvas>
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold">Por Situação Contratual</h2>
+            <canvas ref={chartRefs.contratoFechado}></canvas>
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold">Por Qualificação</h2>
+            <canvas ref={chartRefs.qualificacao}></canvas>
+          </div>
+        </div>
       </div>
     </div>
+
   );
 }
