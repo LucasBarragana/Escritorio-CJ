@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/app/lib/prisma'; // Importa o Prisma Client de um módulo gerenciado
 
-const prisma = new PrismaClient();
 
 export async function GET() {
   try {
