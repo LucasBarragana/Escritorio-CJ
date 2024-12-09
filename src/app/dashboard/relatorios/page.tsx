@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import Chart, { ChartType, ChartConfiguration } from 'chart.js/auto';
+import Chart, { ChartConfiguration } from 'chart.js/auto';
 import Graficos from '@/app/components/graficos';
 import ProcessosPorMes from '@/app/components/graficoGeral';
 
@@ -14,6 +14,10 @@ interface Processo {
   id: string;
   advogadoId: string;
   fechamentoId: string;
+  especialidade:  { id: number; nome: string; background: string };
+  status:  { id: number; nome: string; background: string };
+  contratoFechado:  { id: number; nome: string; background: string };
+  qualificacao: string;
   data: string; // Formato ISO (YYYY-MM-DD)
 }
 
@@ -127,7 +131,7 @@ export default function AdvogadoProcessosGraficos() {
   return (
     <div className="p-12">
       <h1 className='text-3xl font-semibold mb-4'>Análise de Relatórios</h1>
-      <ProcessosPorMes processos={filteredProcessos} />
+      <ProcessosPorMes />
       <div className="mb-6 mt-10">
         <label className="block font-semibold mb-2">Filtrar por intervalo de datas:</label>
         <div className="flex gap-4">
@@ -149,7 +153,7 @@ export default function AdvogadoProcessosGraficos() {
         </div>
       </div>
 
-      <Graficos processos={filteredProcessos} />
+      <Graficos startDate={startDate} endDate={endDate} processos={filteredProcessos} />
 
       <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8'>
         <div>

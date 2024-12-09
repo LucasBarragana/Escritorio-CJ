@@ -5,11 +5,11 @@ const prisma = new PrismaClient();
 
 export async function GET() {
   try {
-    const especialidades = await prisma.especialidade.findMany();
-    return NextResponse.json(especialidades);
+    const qualificacoes = await prisma.qualificacao.findMany();
+    return NextResponse.json(qualificacoes);
   } catch {
     return NextResponse.json(
-      { message: 'Erro ao buscar especialidades' },
+      { message: 'Erro ao buscar qualificações' },
       { status: 500 }
     );
   }
@@ -26,13 +26,13 @@ export async function POST(request: Request) {
       );
     }
 
-    const especialidade = await prisma.especialidade.create({
+    const qualificacao = await prisma.qualificacao.create({
       data: { nome, backgroundColor },
     });
-    return NextResponse.json(especialidade, { status: 201 });
+    return NextResponse.json(qualificacao, { status: 201 });
   } catch {
     return NextResponse.json(
-      { message: 'Erro ao criar especialidade' },
+      { message: 'Erro ao criar qualificação' },
       { status: 500 }
     );
   }
@@ -49,14 +49,14 @@ export async function PUT(request: Request) {
       );
     }
 
-    const especialidade = await prisma.especialidade.update({
+    const qualificacao = await prisma.qualificacao.update({
       where: { id },
       data: { nome, backgroundColor },
     });
-    return NextResponse.json(especialidade);
+    return NextResponse.json(qualificacao);
   } catch {
     return NextResponse.json(
-      { message: 'Erro ao atualizar especialidade' },
+      { message: 'Erro ao atualizar qualificação' },
       { status: 500 }
     );
   }
@@ -73,13 +73,13 @@ export async function DELETE(request: Request) {
       );
     }
 
-    await prisma.especialidade.delete({
+    await prisma.qualificacao.delete({
       where: { id },
     });
-    return NextResponse.json({ message: 'Especialidade excluída com sucesso!' });
+    return NextResponse.json({ message: 'Qualificação excluída com sucesso!' });
   } catch {
     return NextResponse.json(
-      { message: 'Erro ao excluir especialidade' },
+      { message: 'Erro ao excluir qualificação' },
       { status: 500 }
     );
   }

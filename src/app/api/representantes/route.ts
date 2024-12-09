@@ -5,7 +5,7 @@ export async function GET() {
   try {
     const representantes = await prisma.representante.findMany();
     return NextResponse.json(representantes);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: 'Erro ao buscar Representantes' },
       { status: 500 }
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
       data: { nome, cargo },
     });
     return NextResponse.json(newRepresentante, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: 'Erro ao criar Representante' },
       { status: 500 }
@@ -52,7 +52,7 @@ export async function PUT(request: NextRequest) {
       data: { nome, cargo },
     });
     return NextResponse.json(updatedRepresentante);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: 'Erro ao atualizar Representante' },
       { status: 500 }
@@ -73,7 +73,7 @@ export async function DELETE(request: NextRequest) {
 
     await prisma.representante.delete({ where: { id } });
     return NextResponse.json({ message: 'Representante excluído com sucesso!' });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: 'Erro ao excluir Representante' },
       { status: 500 }

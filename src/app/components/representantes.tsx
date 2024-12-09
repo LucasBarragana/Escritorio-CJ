@@ -29,8 +29,12 @@ export default function RepresentantePage() {
         }
         const data = await response.json();
         setRepresentantes(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('Erro desconhecido');
+        }
       } finally {
         setLoading(false);
       }
@@ -72,8 +76,12 @@ export default function RepresentantePage() {
       setNome('');
       setCargo('');
       setEditingRepresentanteId(null);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Erro desconhecido');
+      }
     } finally {
       setLoading(false);
     }
@@ -101,8 +109,12 @@ export default function RepresentantePage() {
       }
 
       setRepresentantes((prev) => prev.filter((item) => item.id !== id));
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Erro desconhecido');
+      }
     } finally {
       setLoading(false);
     }

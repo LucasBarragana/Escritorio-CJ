@@ -20,7 +20,7 @@ interface Props {
   processos: Processo[];
 }
 
-export default function Graficos({ startDate, endDate, processos }: Props) {
+export default function Graficos({ processos }: Props) {
   const chartRefs = {
     especialidade: useRef<HTMLCanvasElement | null>(null),
     status: useRef<HTMLCanvasElement | null>(null),
@@ -135,7 +135,7 @@ export default function Graficos({ startDate, endDate, processos }: Props) {
         colors
       );
     }
-  }, [processos]);
+  }, [processos,chartRefs.contratoFechado, chartRefs.especialidade,chartRefs.qualificacao, chartRefs.status]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

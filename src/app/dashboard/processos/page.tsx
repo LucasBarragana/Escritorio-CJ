@@ -2,7 +2,7 @@
 'use client'
 import { useState, useEffect } from 'react';
 
-// Tipos para os dados
+    {/* ---------- TIPOS DE DADOS ----------- */}
 interface Lead {
   id: string;
   nome: string;
@@ -39,6 +39,12 @@ interface ContratoFechado {
   backgroundColor: string;
 }
 
+interface Qualificacao {
+  id: string;
+  nome: string;
+  backgroundColor: string;
+}
+
 interface Processo {
   id: string;
   nomeLead: string;
@@ -49,12 +55,13 @@ interface Processo {
   especialidadeId: string;
   statusId: string;
   contratoFechadoId: string;
-  qualificacao: string;
+  qualificacaoId: string;
   fechamentoId: string;
+  precoProjeto: string;
 }
 
 export default function ProcessoPage() {
-  const [leads, setLeads] = useState<Lead[]>([]);
+  const [leads] = useState<Lead[]>([]);
   const [advogados, setAdvogados] = useState<Advogado[]>([]);
   const [representantes, setRepresentantes] = useState<Representante[]>([]);
   const [processos, setProcessos] = useState<Processo[]>([]);
@@ -66,18 +73,170 @@ export default function ProcessoPage() {
   const [especialidadeId, setEspecialidadeId] = useState('');
   const [statusId, setStatusId] = useState('');
   const [contratoFechadoId, setContratoFechadoId] = useState('');
-  const [qualificacao, setQualificacao] = useState('');
+  const [qualificacaoId, setQualificacaoId] = useState('');
+  const [qualificacoes, setQualificacoes] = useState<Qualificacao[]>([]);
   const [fechamentoId, setFechamentoId] = useState('');
   const [especialidades, setEspecialidades] = useState<Especialidade[]>([]);
   const [statuses, setStatuses] = useState<Status[]>([]);
   const [contratos, setContratos] = useState<ContratoFechado[]>([]);
-  const [qualificacaoDisponiveis] = useState(['Contato', 'Inicial']);
+  const [precoProjeto, setPrecoProjeto] = useState('');
   const [editingProcessoId, setEditingProcessoId] = useState<string | null>(null);
   const [selectedLead, setSelectedLead] = useState<Processo | null>(null); // Para pop-up
-  const [searchQuery, setSearchQuery] = useState('');
+
+  {/* ---------- CONEXÕES ----------- */}
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [resAdvogados, resRepresentantes, resProcessos, resEspecialidades, resStatuses, resContratos, resQualificacoes] = 
+          await Promise.all([
+            fetch('/api/advogados'),
+            fetch('/api/representantes'),
+            fetch('/api/processos'),
+            fetch('/api/especialidades'),
+            fetch('/api/status'),
+            fetch('/api/contratos'),
+            fetch('/api/qualificacoes'),
+          ]);
+
+        setAdvogados(await resAdvogados.json());
+        setRepresentantes(await resRepresentantes.json());
+        setProcessos(await resProcessos.json());
+        setEspecialidades(await resEspecialidades.json());
+        setStatuses(await resStatuses.json());
+        setContratos(await resContratos.json());
+        setQualificacoes(await resQualificacoes.json());
+      } catch (error) {
+        console.error('Erro ao carregar dados: ', error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  
+  {/* ---------- INÍCIO FORMULÁRIO ----------- */}
+
+    // Verifica se o nomeLead corresponde a algum lead e preenche o telefone
+    const handleNomeLeadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const nome = e.target.value;
+      setNomeLead(nome);
+  
+      const lead = leads.find((lead) => lead.nome === nome);
+      if (lead) {
+        setTelefone(lead.telefone);
+      } else {
+        setTelefone('');
+      }
+    };
+  
+   // Função para salvar um novo processo ou editar
+   const handleAddOrUpdateProcesso = async (e: React.FormEvent) => {
+    e.preventDefault();
+  
+    if (!nomeLead || !data || !advogadoId || !representanteId) {
+      alert('Por favor, preencha todos os campos obrigatórios.');
+      return;
+    }
+  
+    const requestBody = {
+      nomeLead,
+      telefone,
+      data,
+      advogadoId,
+      representanteId,
+      especialidadeId,
+      statusId,
+      contratoFechadoId,
+      qualificacaoId,
+      fechamentoId,
+      precoProjeto,
+    };
+  
+    try {
+      if (editingProcessoId) {
+        // Atualizar processo existente
+        const response = await fetch('/api/processos', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: editingProcessoId, ...requestBody }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Erro ao atualizar o processo.');
+        }
+        const updatedProcesso = await response.json();
+        setProcessos((prev) =>
+          prev.map((processo) =>
+            processo.id === editingProcessoId ? updatedProcesso : processo
+          )
+        );
+        alert('Processo atualizado com sucesso!');
+        setEditingProcessoId(null);
+      } else {
+        // Adicionar novo processo
+        const response = await fetch('/api/processos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+          throw new Error('Erro ao salvar o processo.');
+        }
+
+        const newProcesso = await response.json();
+        setProcessos((prev) => [...prev, newProcesso]);
+        alert('Processo salvo com sucesso!');
+      }
+  
+      resetForm();
+    } catch (error) {
+      console.error('Erro ao salvar processo: ', error);
+    }
+  };
+  
+  const handleDeleteProcesso = async (processoId: string) => {
+    try {
+      const response = await fetch('/api/processos', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: processoId }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Erro ao deletar o processo.');
+      }
+  
+      setProcessos((prev) => prev.filter((processo) => processo.id !== processoId));
+      alert('Processo deletado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao deletar processo: ', error);
+    }
+  };
+  
+  const resetForm = () => {
+    setNomeLead('');
+    setTelefone('');
+    setData('');
+    setAdvogadoId('');
+    setRepresentanteId('');
+    setEspecialidadeId('');
+    setStatusId('');
+    setContratoFechadoId('');
+    setQualificacaoId('');
+    setFechamentoId('');
+    setEditingProcessoId(null);
+    setPrecoProjeto('');
+  };
+  {/* ---------- FIM FORMULÁRIO ----------- */}
+
+
+  {/* ---------- INÍCIO FILTRO E TABELA ----------- */}
 
   // Estado para armazenar o campo selecionado para pesquisa
-const [searchField, setSearchField] = useState<string>('nomeLead');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchField, setSearchField] = useState<string>('nomeLead');
 
   // Atualização da lógica de filtragem
   const filteredProcessos = processos.filter((processo) => {
@@ -106,7 +265,6 @@ const [searchField, setSearchField] = useState<string>('nomeLead');
       );
       fieldValue = contrato?.nome;
     } else {
-      // Outros campos são tratados diretamente
       fieldValue = processo[searchField as keyof typeof processo];
     }
 
@@ -116,172 +274,35 @@ const [searchField, setSearchField] = useState<string>('nomeLead');
       .includes(searchQuery.toLowerCase());
   });
 
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const resAdvogados = await fetch('/api/advogados');
-      const resRepresentantes = await fetch('/api/representantes');
-      const resProcessos = await fetch('/api/processos');
-      const resEspecialidades = await fetch('/api/especialidades');
-      const resStatuses = await fetch('/api/status');
-      const resContratos = await fetch('/api/contratos');
-
-      
-      setAdvogados(await resAdvogados.json());
-      setRepresentantes(await resRepresentantes.json());
-      setProcessos(await resProcessos.json());
-      setEspecialidades(await resEspecialidades.json());
-      setStatuses(await resStatuses.json());
-      setContratos(await resContratos.json());
-    };
-
-    fetchData();
-  }, []);
-
-    // Função para obter a cor do status selecionado
-
-  
-
-    // Verifica se o nomeLead corresponde a algum lead e preenche o telefone
-  const handleNomeLeadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const nome = e.target.value;
-    setNomeLead(nome);
-
-
-    const lead = leads.find((lead) => lead.nome === nome);
-    if (lead) {
-      setTelefone(lead.telefone);
-    } else {
-      setTelefone('');
-    }
-  };
-
- // Função para salvar um novo processo ou editar
-const handleAddOrUpdateProcesso = async (e: React.FormEvent) => {
-  e.preventDefault();
-
-  if (editingProcessoId) {
-    const updatedProcesso = {
-      id: editingProcessoId,
-      nomeLead,
-      telefone,
-      data,
-      advogadoId,
-      representanteId,
-      especialidadeId,
-      statusId,
-      contratoFechadoId,
-      qualificacao,
-      fechamentoId,
-    };
-
-    const res = await fetch(`/api/processos/${editingProcessoId}`, { // Corrigido o uso da interpolação
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(updatedProcesso),
-    });
-
-    const savedProcesso = await res.json();
-    setProcessos(
-      processos.map((processo) =>
-        processo.id === editingProcessoId ? savedProcesso : processo
-      )
-    );
-    setEditingProcessoId(null);
-  } else {
-    const newProcesso = {
-      id: crypto.randomUUID(),
-      nomeLead,
-      telefone,
-      data,
-      advogadoId,
-      representanteId,
-      especialidadeId,
-      statusId,
-      contratoFechadoId,
-      qualificacao,
-      fechamentoId,
-    };
-
-    const res = await fetch('/api/processos', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(newProcesso),
-    });
-
-    const savedProcesso = await res.json();
-    setProcessos([...processos, savedProcesso]);
-  }
-
-  resetForm();
-};
-
-
-
+  // Função para atualizar os dados do formulário para edição
   const handleEditProcesso = (processo: Processo) => {
     setEditingProcessoId(processo.id);
     setNomeLead(processo.nomeLead);
     setTelefone(processo.telefone);
-    setData(processo.data);
+    setData(new Date(processo.data).toISOString().split('T')[0]); 
     setAdvogadoId(processo.advogadoId);
     setRepresentanteId(processo.representanteId);
     setEspecialidadeId(processo.especialidadeId);
     setStatusId(processo.statusId);
     setContratoFechadoId(processo.contratoFechadoId);
-    setQualificacao(processo.qualificacao);
+    setQualificacaoId(processo.qualificacaoId);
     setFechamentoId(processo.fechamentoId);
+    setPrecoProjeto(processo.precoProjeto);
   };
-
-  const resetForm = () => {
-    setNomeLead('');
-    setTelefone('');
-    setData('');
-    setAdvogadoId('');
-    setRepresentanteId('');
-    setEspecialidadeId('');
-    setStatusId('');
-    setContratoFechadoId('');
-    setQualificacao('');
-    setFechamentoId('');
-  };
-
- // Corrigir o uso do localStorage no handleDeleteProcesso
-const handleDeleteProcesso = (processoId: string) => {
-  const updatedProcessos = processos.filter((processo) => processo.id !== processoId);
-  setProcessos(updatedProcessos); // Atualize o estado
-  localStorage.setItem('processos', JSON.stringify(updatedProcessos)); // Corrigido o nome da função
-};
 
   // Função para abrir a plataforma de conversa DIgisac
   const handleOpenChat = async (telefone: string) => {
     try {
-      const response = await fetch('https://api.digisac.com.br/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: 'Bearer SEU_TOKEN_API_AQUI', // Substitua pelo seu token
-        },
-        body: JSON.stringify({
-          channel: 'whatsapp',
-          phone: telefone,
-          message: '', // Mensagem inicial (opcional)
-        }),
-      });
-
-      if (response.ok) {
-        alert("Conversa iniciada com o número ${telefone} no Digisac!");
-      } else {
-        const errorData = await response.json();
-        console.error('Erro ao abrir conversa:', errorData);
-        alert('Erro ao iniciar conversa. Verifique os dados e tente novamente.');
-      }
+      // A URL da conversa no Digisac (ou outro sistema) já com o telefone
+      const chatUrl = `https://carvalhoebrum.digisac.me/conversa/${telefone}`;
+  
+      // Abre a janela com a plataforma Digisac e redireciona diretamente para a conversa
+      window.open(chatUrl, '_blank'); // '_blank' abre em uma nova aba/guia
+  
+      alert(`A plataforma Digisac foi aberta para o número ${telefone}`);
     } catch (error) {
-      console.error('Erro de integração:', error);
-      alert('Erro de conexão com o Digisac.');
+      console.error('Erro ao abrir o chat:', error);
+      alert('Erro ao abrir a plataforma Digisac.');
     }
   };
 
@@ -293,8 +314,17 @@ const handleDeleteProcesso = (processoId: string) => {
       .padStart(2, '0')}/${date.getFullYear()}`;
     };
 
+  {/* ---------- FIM FILTRO E TABELA ----------- */}
+
+
+
+
+
   return (
     <div className="p-10"> 
+
+    {/* ---------- INÍCIO DO FORMULÁRIO ----------- */}
+
       <h2 className="text-2xl font-semibold mb-6">{editingProcessoId ? 'Editar Processo' : 'Cadastrar Novo Processo'}</h2>
       <form onSubmit={handleAddOrUpdateProcesso} className="flex space-x-10 mb-6">
         <div>
@@ -322,9 +352,20 @@ const handleDeleteProcesso = (processoId: string) => {
             <input
               type="text"
               value={telefone}
-              onChange={(e) => setTelefone(e.target.value)} // Permite a edição do telefone
+              onChange={(e) => setTelefone(e.target.value)} 
               className="w-full p-2 mt-1 border border-gray-300 rounded-md"
               placeholder="Telefone"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">Valor do Proceso</label>
+            <input
+              type="text"
+              value={precoProjeto}
+              onChange={(e) => setPrecoProjeto(e.target.value)} 
+              className="w-full p-2 mt-1 border border-gray-300 rounded-md"
+              placeholder="Valor do Processo"
             />
           </div>
 
@@ -444,15 +485,15 @@ const handleDeleteProcesso = (processoId: string) => {
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">Qualificação</label>
             <select
-              value={qualificacao}
-              onChange={(e) => setQualificacao(e.target.value)}
+              value={qualificacaoId}
+              onChange={(e) => setQualificacaoId(e.target.value)}
               className="w-full p-2 mt-1 border border-gray-300 rounded-md"
               required
             >
               <option value="">Selecione a Qualificação</option>
-              {qualificacaoDisponiveis.map((qualificacao, index) => (
-                <option key={index} value={qualificacao}>
-                  {qualificacao}
+              {qualificacoes.map((qualificacao) => (
+                <option key={qualificacao.id} value={qualificacao.id}>
+                  {qualificacao.nome}
                 </option>
               ))}
             </select>
@@ -464,6 +505,10 @@ const handleDeleteProcesso = (processoId: string) => {
           </button>
         </div>
       </form>
+
+     {/* ---------- FIM DO FORMULÁRIO ----------- */}
+
+    {/* ---------- INÍCIO DA TABELA E PESQUISA ----------- */}
 
       <h3 className="text-xl font-semibold mb-4">Processos Cadastrados</h3>
       <div className='flex gap-8 mb-4'>
@@ -511,17 +556,18 @@ const handleDeleteProcesso = (processoId: string) => {
             <th className="px-4 py-2">Contrato</th>
             <th className="px-4 py-2">Qualificação</th>
             <th className="px-4 py-2">Ações</th>
+            <th className="px-4 py-2">R$ Processo </th>
           </tr>
         </thead>
         <tbody>
           {filteredProcessos.map((processo) => (
             <tr key={processo.id}>
-              <td className="border-t border-t-[#771A1D] px-4 py-2">
+              <td className="text-center border-t border-t-[#771A1D] px-4 py-2">
                 <button
                   className=" underline"
                   onClick={() => setSelectedLead(processo)}
                 >
-                  {processo.nomeLead.split(' ')[0]}
+                  {processo.nomeLead}
                 </button>
                 <br />
                 <button
@@ -575,7 +621,21 @@ const handleDeleteProcesso = (processoId: string) => {
                 </span>
               </td>
               <td className="border-t border-t-[#771A1D] px-4 py-2">
-                <p className='flex justify-center px-2 py-1 bg-gray-200 rounded text-xs font-semibold'>{processo.qualificacao}</p>
+                <span
+                      className="px-2 py-1 rounded text-xs font-semibold"
+                      style={{
+                        backgroundColor: qualificacoes.find((e) => e.id === processo.qualificacaoId)
+                          ?.backgroundColor || '#ffffff',
+                      }}
+                    >
+                      {qualificacoes.find((e) => e.id === processo.qualificacaoId)?.nome || 'N/A'}
+                </span>
+              </td>
+
+              <td className="border-t border-t-[#771A1D] px-4 py-2">
+                <span className="px-2 py-1 rounded text-xs font-semibold"                    >
+                  {processo.precoProjeto}
+                </span>
               </td>
 
               <td className="border-t border-t-[#771A1D] px-4 py-2 ">
@@ -603,6 +663,11 @@ const handleDeleteProcesso = (processoId: string) => {
         </tbody>
       </table>
       <div className='w-full h-[4px] bg-red-900'></div>
+
+    {/* ---------- FIM DA TABELA E PESQUISA ----------- */}
+
+
+    {/* ---------- INÍCIO DO POPUP DO CONTATO ----------- */}
       {selectedLead && (
         <div className="fixed inset-0 flex especialidades-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded shadow-md">
@@ -618,6 +683,7 @@ const handleDeleteProcesso = (processoId: string) => {
           </div>
         </div>
       )}
+    {/* ---------- FIM DO POPUP DO CONTATO ----------- */}
     </div>
   );
 }

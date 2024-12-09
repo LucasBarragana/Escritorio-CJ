@@ -7,9 +7,9 @@ export async function GET() {
   try {
     const contratos = await prisma.contratoFechado.findMany();
     return NextResponse.json(contratos);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
-      { message: 'Erro ao buscar contratos'},
+      { message: 'Erro ao buscar contratos' },
       { status: 500 }
     );
   }
@@ -30,9 +30,9 @@ export async function POST(request: Request) {
       data: { nome, backgroundColor },
     });
     return NextResponse.json(contrato, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
-      { message: 'Erro ao criar contrato'},
+      { message: 'Erro ao criar contrato' },
       { status: 500 }
     );
   }
@@ -54,9 +54,9 @@ export async function PUT(request: Request) {
       data: { nome, backgroundColor },
     });
     return NextResponse.json(contrato);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
-      { message: 'Erro ao atualizar contrato'},
+      { message: 'Erro ao atualizar contrato' },
       { status: 500 }
     );
   }
@@ -77,9 +77,9 @@ export async function DELETE(request: Request) {
       where: { id },
     });
     return NextResponse.json({ message: 'Contrato excluído com sucesso!' });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
-      { message: 'Erro ao excluir contrato'},
+      { message: 'Erro ao excluir contrato' },
       { status: 500 }
     );
   }

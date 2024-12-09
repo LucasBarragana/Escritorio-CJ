@@ -12,12 +12,14 @@ export async function GET() {
         especialidade: true,
         status: true,
         contratoFechado: true,
+        qualificacao: true, // Incluindo a relação com Qualificacao
       },
     });
-    return NextResponse.json(processos);
+    return NextResponse.json(processos, { status: 200 });
   } catch (error) {
+    console.error('Erro ao buscar processos:', error);
     return NextResponse.json(
-      { message: 'Erro ao buscar processos'},
+      { message: 'Erro ao buscar processos' },
       { status: 500 }
     );
   }
@@ -34,8 +36,9 @@ export async function POST(request: Request) {
       especialidadeId,
       statusId,
       contratoFechadoId,
-      qualificacao,
+      qualificacaoId, // Usando qualificacaoId como referência
       fechamentoId,
+      precoProjeto,
     } = await request.json();
 
     if (!nomeLead || !telefone || !data) {
@@ -45,18 +48,22 @@ export async function POST(request: Request) {
       );
     }
 
+    // Ajustando a data para garantir que seja salva corretamente
+    const adjustedDate = new Date(data + 'T00:00:00');
+
     const novoProcesso = await prisma.processo.create({
       data: {
         nomeLead,
         telefone,
-        data: new Date(data),
-        advogadoId, // Foreign key
-        representanteId, // Foreign key
-        especialidadeId, // Foreign key
-        statusId, // Foreign key
-        contratoFechadoId, // Foreign key
-        qualificacao,
-        fechamentoId, // Foreign key
+        data: adjustedDate,
+        advogadoId,
+        representanteId,
+        especialidadeId,
+        statusId,
+        contratoFechadoId,
+        qualificacaoId, 
+        fechamentoId,
+        precoProjeto,
       },
     });
 
@@ -72,14 +79,49 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const { id, ...data } = await request.json();
-
-    const processoAtualizado = await prisma.processo.update({
-      where: { id },
+    const {
+      id,
+      nomeLead,
+      telefone,
       data,
+      advogadoId,
+      representanteId,
+      especialidadeId,
+      statusId,
+      contratoFechadoId,
+      qualificacaoId, // Incluindo qualificacaoId
+      fechamentoId,
+      precoProjeto,
+    } = await request.json();
+
+    if (!id) {
+      return NextResponse.json(
+        { message: 'ID do processo é obrigatório para atualização.' },
+        { status: 400 }
+      );
+    }
+
+    // Ajustando a data para garantir que seja salva corretamente
+    const adjustedDate = new Date(data + 'T00:00:00');
+
+    const processo = await prisma.processo.update({
+      where: { id },
+      data: {
+        nomeLead,
+        telefone,
+        data: adjustedDate,
+        advogadoId,
+        representanteId,
+        especialidadeId,
+        statusId,
+        contratoFechadoId,
+        qualificacaoId, // Atualizando qualificacaoId
+        fechamentoId,
+        precoProjeto,
+      },
     });
 
-    return NextResponse.json(processoAtualizado);
+    return NextResponse.json(processo, { status: 200 });
   } catch (error) {
     console.error('Erro ao atualizar processo:', error);
     return NextResponse.json(
@@ -88,7 +130,6 @@ export async function PUT(request: Request) {
     );
   }
 }
-
 
 export async function DELETE(request: Request) {
   try {
@@ -104,10 +145,15 @@ export async function DELETE(request: Request) {
     await prisma.processo.delete({
       where: { id },
     });
-    return NextResponse.json({ message: 'Processo excluído com sucesso!' });
-  } catch (error) {
+
     return NextResponse.json(
-      { message: 'Erro ao excluir processo'},
+      { message: 'Processo excluído com sucesso!' },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error('Erro ao excluir processo:', error);
+    return NextResponse.json(
+      { message: 'Erro ao excluir processo' },
       { status: 500 }
     );
   }

@@ -26,7 +26,7 @@ interface Processo {
   id: string;
   nomeLead: string;
   telefone: string;
-  data: string; // Assume que a data está no formato ISO (YYYY-MM-DD)
+  data: string;
   advogadoId: string;
   fechamentoId: string;
   especialidadeId: string;
@@ -39,11 +39,13 @@ export default function Home() {
   const [advogados, setAdvogados] = useState<Advogado[]>([]);
   const [especialidades, setEspecialidades] = useState<Especialidade[]>([]);
   const [contratos, setContratos] = useState<ContratoFechado[]>([]);
+  const [contratoSelecionado, setContratoSelecionado] = useState<string | null>(null);
+  const [especialidadeSelecionada, setEspecialidadeSelecionada] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [processosRes, advogadosRes, especialidadesRes,contratosRes] = await Promise.all([
+        const [processosRes, advogadosRes, especialidadesRes, contratosRes] = await Promise.all([
           fetch('/api/processos'),
           fetch('/api/advogados'),
           fetch('/api/especialidades'),
@@ -69,7 +71,6 @@ export default function Home() {
     fetchData();
   }, []);
 
-  // Função para obter os processos do mês atual
   const getProcessosMesAtual = () => {
     const today = new Date();
     return processos.filter((processo) => {
@@ -83,32 +84,137 @@ export default function Home() {
 
   const processosMesAtual = getProcessosMesAtual();
 
+  const contarProcessosPorContrato = () => {
+    const contratoCount: { [key: string]: number } = {};
 
-  // Processos do mês atual e do mês anterior
-  const totalProcessosMesAtual = processosMesAtual.length;
+    processosMesAtual.forEach((processo) => {
+      const contratoId = processo.contratoFechadoId;
+      if (contratoCount[contratoId]) {
+        contratoCount[contratoId]++;
+      } else {
+        contratoCount[contratoId] = 1;
+      }
+    });
 
+    return contratoCount;
+  };
 
-// Formatação da data
+  const processosPorContrato = contarProcessosPorContrato();
+
+  const contarProcessosPorEspecialidade = () => {
+    const especialidadeCount: { [key: string]: number } = {};
+
+    processosMesAtual.forEach((processo) => {
+      const especialidadeId = processo.especialidadeId;
+      if (especialidadeCount[especialidadeId]) {
+        especialidadeCount[especialidadeId]++;
+      } else {
+        especialidadeCount[especialidadeId] = 1;
+      }
+    });
+
+    return especialidadeCount;
+  };
+
+  const processosPorEspecialidade = contarProcessosPorEspecialidade();
+
   const formatDate = (isoDate: string) => {
     const date = new Date(isoDate);
     return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1)
       .toString()
       .padStart(2, '0')}/${date.getFullYear()}`;
-    };
+  };
+
+  const processosFiltrados = contratoSelecionado
+    ? processosMesAtual.filter((processo) => processo.contratoFechadoId === contratoSelecionado)
+    : especialidadeSelecionada
+    ? processosMesAtual.filter((processo) => processo.especialidadeId === especialidadeSelecionada)
+    : processosMesAtual;
+
+  const resetFiltros = () => {
+    setContratoSelecionado(null);
+    setEspecialidadeSelecionada(null);
+  };
 
   return (
     <div className="p-8">
       <h2 className="text-2xl font-semibold mb-6">Dashboard de Processos</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {/* Card 1: Total de Leads */}
         <div className="bg-gray-100 p-6 rounded-lg shadow-md">
           <h3 className="text-xl font-semibold">Total de Leads</h3>
-          <p className="text-xs mb-4">Últimos 30 dias</p>
-          <p className="text-2xl font-bold">{totalProcessosMesAtual}</p>
+          <p className="text-xs mb-4">Este Mês</p>
+          <p className="text-2xl font-bold">{processosMesAtual.length}</p>
         </div>
 
-        {/* Card 2: Contratos Fechados */}
+        <div className="bg-gray-100 p-6 rounded-lg shadow-md">
+          <div className='flex justify-between '>
+            <h3 className="text-xl font-semibold">Situação Contratual</h3>
+            <button
+              className="text-xs t-4 bg-red-500 text-white py-1 px-2 rounded"
+              onClick={resetFiltros}
+            >
+              x
+            </button>
+          </div> 
+          <p className="text-xs mb-4">Este Mês</p>
+          <ul className="space-y-2">
+            {Object.keys(processosPorContrato).map((contratoId) => {
+              const contrato = contratos.find((c) => c.id === contratoId);
+              return (
+                <li
+                  key={contratoId}
+                  className="flex justify-between cursor-pointer"
+                  onClick={() => setContratoSelecionado(contratoId)}
+                >
+                  <span
+                    className="px-2 py-1 rounded text-xs font-semibold"
+                    style={{
+                      backgroundColor: contrato?.backgroundColor || '#ffffff',
+                    }}
+                  >
+                    {contrato?.nome || 'Contrato Não Encontrado'}
+                  </span>
+                  <span className="font-bold">{processosPorContrato[contratoId]}</span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
 
+        <div className="bg-gray-100 p-6 rounded-lg shadow-md">
+          <div className='flex  justify-between '>
+            <h3 className="text-xl font-semibold">Processos por Especialidade</h3>
+            <button
+              className="text-xs t-4 bg-red-500 text-white py-1 px-2 rounded"
+              onClick={resetFiltros}
+            >
+              x
+            </button>
+          </div>          
+          <p className="text-xs mb-4">Este Mês</p>
+          <ul className="space-y-2">
+            {Object.keys(processosPorEspecialidade).map((especialidadeId) => {
+              const especialidade = especialidades.find((e) => e.id === especialidadeId);
+              return (
+                <li
+                  key={especialidadeId}
+                  className="flex justify-between cursor-pointer"
+                  onClick={() => setEspecialidadeSelecionada(especialidadeId)}
+                >
+                  <span
+                    className="px-2 py-1 rounded text-xs font-semibold"
+                    style={{
+                      backgroundColor: especialidade?.backgroundColor || '#ffffff',
+                    }}
+                  >
+                    {especialidade?.nome || 'Especialidade Não Encontrada'}
+                  </span>
+                  <span className="font-bold">{processosPorEspecialidade[especialidadeId]}</span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       </div>
 
       <div className="flex justify-between gap-20">
@@ -126,44 +232,49 @@ export default function Home() {
               </tr>
             </thead>
             <tbody>
-              {processosMesAtual.map((processo) => (
+              {processosFiltrados.map((processo) => (
                 <tr key={processo.id}>
                   <td className="border-t border-t-[#771A1D] px-4 py-2">{processo.nomeLead}</td>
                   <td className="border-t border-t-[#771A1D] px-4 py-2">{formatDate(processo.data)}</td>
                   <td className="border-t border-t-[#771A1D] px-4 py-2">
-                    {advogados.find((advogado) => advogado.id === processo.advogadoId)?.nome || 'N/A'}
+                    {advogados.find((advogado) => advogado.id === processo.advogadoId)?.nome}
                   </td>
                   <td className="border-t border-t-[#771A1D] px-4 py-2">
-                    {advogados.find((advogado) => advogado.id === processo.fechamentoId)?.nome || 'N/A'}
+                    {advogados.find((advogado) => advogado.id === processo.fechamentoId)?.nome}
                   </td>
                   <td className="border-t border-t-[#771A1D] px-4 py-2">
                     <span
-                      className="px-2 py-1 rounded text-xs font-semibold"
-                      style={{
-                        backgroundColor: especialidades.find((e) => e.id === processo.especialidadeId)
-                          ?.backgroundColor || '#ffffff',
-                      }}
-                    >
-                      {especialidades.find((e) => e.id === processo.especialidadeId)?.nome || 'N/A'}
+                          className="px-2 py-1 rounded text-xs font-semibold"
+                          style={{
+                            backgroundColor: especialidades.find((e) => e.id === processo.especialidadeId)
+                              ?.backgroundColor || '#ffffff',
+                          }}
+                        >
+                          {especialidades.find((e) => e.id === processo.especialidadeId)?.nome || 'N/A'}
                     </span>
                   </td>
                   <td className="border-t border-t-[#771A1D] px-4 py-2">
-                <span
-                      className="px-2 py-1 rounded text-xs font-semibold"
-                      style={{
-                        backgroundColor: contratos.find((e) => e.id === processo.contratoFechadoId)
-                          ?.backgroundColor || '#ffffff',
-                      }}
-                    >
-                      {contratos.find((e) => e.id === processo.contratoFechadoId)?.nome || 'N/A'}
-                </span>
-              </td>
+                    <span
+                          className="px-2 py-1 rounded text-xs font-semibold"
+                          style={{
+                            backgroundColor: contratos.find((e) => e.id === processo.contratoFechadoId)
+                              ?.backgroundColor || '#ffffff',
+                          }}
+                        >
+                          {contratos.find((e) => e.id === processo.contratoFechadoId)?.nome || 'N/A'}
+                    </span>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <AdvogadoProcessosCard />
+
+        <div>
+          <h3 className="text-xl font-semibold mb-4">Resumo de Processos</h3>
+          <AdvogadoProcessosCard />
+        </div>
+
       </div>
     </div>
   );

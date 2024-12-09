@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Chart, { ChartConfiguration } from 'chart.js/auto';
 
 interface Processo {
@@ -12,13 +12,28 @@ interface Processo {
   data: string; // Formato ISO (YYYY-MM-DD)
 }
 
-interface Props {
-  processos: Processo[];
-}
-
-export default function ProcessosPorMes({ processos }: Props) {
+export default function ProcessosPorMes() {
   const chartRef = useRef<HTMLCanvasElement | null>(null);
   const chartInstance = useRef<Chart | null>(null);
+  const [processos, setProcessos] = useState<Processo[]>([]);
+
+  useEffect(() => {
+    // Buscar os dados da API
+    const fetchProcessos = async () => {
+      try {
+        const response = await fetch('/api/processos');
+        if (!response.ok) {
+          throw new Error(`Erro ao buscar processos: ${response.statusText}`);
+        }
+        const data = await response.json();
+        setProcessos(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchProcessos();
+  }, []);
 
   useEffect(() => {
     if (processos.length > 0) {
@@ -98,7 +113,7 @@ export default function ProcessosPorMes({ processos }: Props) {
   }, [processos]);
 
   return (
-    <div className='w-[50%]'>
+    <div className="w-[50%]">
       <h2 className="text-lg font-semibold">Processos por Mês</h2>
       <canvas ref={chartRef}></canvas>
     </div>

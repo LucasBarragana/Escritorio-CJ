@@ -5,6 +5,7 @@ import EspecialidadePage from '@/app/components/especialits';
 import StatusPage from '@/app/components/status';
 import ContratoFechadoPage from '@/app/components/contractdeal';
 import RepresentantePage from '@/app/components/representantes';
+import QualificacaoPage from '@/app/components/settings/qualificacao';
 
 export default function Settings() {
   const [selectedComponent, setSelectedComponent] = useState<string | null>(null);
@@ -45,6 +46,12 @@ export default function Settings() {
           >
             Gerenciar Situação de Contrato
           </button>
+          <button
+            onClick={() => setSelectedComponent('qualificacao')}
+              className="p-4 text-white bg-gray-500 rounded hover:bg-gray-600"
+            >
+              Gerenciar Qualificação
+          </button>
         </div>
 
         {/* Renderiza o formulário do componente selecionado */}
@@ -54,6 +61,7 @@ export default function Settings() {
           {selectedComponent === 'especialits' && <div><EspecialidadePage /></div>}
           {selectedComponent === 'status' && <div><StatusPage /></div>}
           {selectedComponent === 'contractdeal' && <div><ContratoFechadoPage /></div>}
+          {selectedComponent === 'qualificacao' && <div><QualificacaoPage /></div>}
         </div>
       </div>
     </div>

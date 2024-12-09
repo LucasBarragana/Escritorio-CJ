@@ -44,6 +44,13 @@ model ContratoFechado {
   processos       Processo[]
 }
 
+model Qualificacao {
+  id              String     @id @default(uuid())
+  nome            String
+  backgroundColor String
+  processos       Processo[]
+}
+
 model Processo {
   id                 String           @id @default(uuid())
   nomeLead           String
@@ -59,7 +66,10 @@ model Processo {
   status             Status           @relation(fields: [statusId], references: [id])
   contratoFechadoId  String
   contratoFechado    ContratoFechado  @relation(fields: [contratoFechadoId], references: [id])
-  qualificacao       String
+  qualificacaoId     String
+  qualificacao       Qualificacao?    @relation(fields: [qualificacaoId], references: [id])
   fechamentoId       String
   fechamento         Advogado?        @relation("ProcessoFechamento", fields: [fechamentoId], references: [id])
+  precoProjeto       String
 }
+

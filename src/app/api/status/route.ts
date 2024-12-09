@@ -7,7 +7,7 @@ export async function GET() {
   try {
     const statuses = await prisma.status.findMany();
     return NextResponse.json(statuses);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: 'Erro ao buscar status' },
       { status: 500 }
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
       data: { nome, backgroundColor },
     });
     return NextResponse.json(status, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: 'Erro ao criar status' },
       { status: 500 }
@@ -54,7 +54,7 @@ export async function PUT(request: Request) {
       data: { nome, backgroundColor },
     });
     return NextResponse.json(status);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: 'Erro ao atualizar status' },
       { status: 500 }
@@ -77,7 +77,7 @@ export async function DELETE(request: Request) {
       where: { id },
     });
     return NextResponse.json({ message: 'Status excluído com sucesso!' });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: 'Erro ao excluir status' },
       { status: 500 }

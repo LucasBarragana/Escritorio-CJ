@@ -1,33 +1,31 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 
-interface ContratoFechado {
+interface Qualificacao {
   id: string;
   nome: string;
   backgroundColor: string;
 }
 
-export default function ContratoFechadoPage() {
-  const [contratos, setContratos] = useState<ContratoFechado[]>([]);
+export default function QualificacaoPage() {
+  const [qualificacoes, setQualificacoes] = useState<Qualificacao[]>([]);
   const [nome, setNome] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [backgroundColor, setBackgroundColor] = useState('#ffffff');
-  const [loading, setLoading] = useState(false); // Novo estado para controle de carregamento
-  const [error, setError] = useState<string | null>(null); // Novo estado para mensagens de erro
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Atualize o endpoint caso necessário
-  const API_URL = '/api/contratos'; 
+  const API_URL = '/api/qualificacoes';
 
   useEffect(() => {
-    const fetchContratos = async () => {
+    const fetchQualificacoes = async () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(API_URL);
-        if (!response.ok) {
-          throw new Error('Erro ao carregar os contratos');
-        }
+        const res = await fetch(API_URL);
+        if (!res.ok) throw new Error('Erro ao carregar qualificações');
+        const data = await res.json();
+        setQualificacoes(data);
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message);
@@ -38,8 +36,7 @@ export default function ContratoFechadoPage() {
         setLoading(false);
       }
     };
-
-    fetchContratos();
+    fetchQualificacoes();
   }, [API_URL]);
 
   const handleAddOrUpdate = async (e: React.FormEvent) => {
@@ -47,29 +44,25 @@ export default function ContratoFechadoPage() {
     setLoading(true);
     setError(null);
 
-    const contratoData = { nome, backgroundColor, id: editingId };
+    const qualificacaoData = { nome, backgroundColor, id: editingId };
 
     try {
-      const response = await fetch(API_URL, {
-        method: editingId ? 'PUT' : 'POST',
+      const method = editingId ? 'PUT' : 'POST';
+      const res = await fetch(API_URL, {
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(contratoData),
+        body: JSON.stringify(qualificacaoData),
       });
 
-      if (!response.ok) {
-        throw new Error(
-          editingId ? 'Erro ao atualizar o contrato' : 'Erro ao adicionar o contrato'
-        );
-      }
+      if (!res.ok)
+        throw new Error(editingId ? 'Erro ao atualizar qualificação' : 'Erro ao adicionar qualificação');
 
-      const updatedContrato = await response.json();
-
-      setContratos((prev) =>
+      const updatedQualificacao = await res.json();
+      setQualificacoes((prev) =>
         editingId
-          ? prev.map((item) => (item.id === editingId ? updatedContrato : item))
-          : [...prev, updatedContrato]
+          ? prev.map((item) => (item.id === editingId ? updatedQualificacao : item))
+          : [...prev, updatedQualificacao]
       );
-
       setNome('');
       setBackgroundColor('#ffffff');
       setEditingId(null);
@@ -84,7 +77,7 @@ export default function ContratoFechadoPage() {
     }
   };
 
-  const handleEdit = (item: ContratoFechado) => {
+  const handleEdit = (item: Qualificacao) => {
     setEditingId(item.id);
     setNome(item.nome);
     setBackgroundColor(item.backgroundColor);
@@ -93,19 +86,16 @@ export default function ContratoFechadoPage() {
   const handleDelete = async (id: string) => {
     setLoading(true);
     setError(null);
-
     try {
-      const response = await fetch(API_URL, {
+      const res = await fetch(API_URL, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
       });
 
-      if (!response.ok) {
-        throw new Error('Erro ao deletar o contrato');
-      }
+      if (!res.ok) throw new Error('Erro ao deletar qualificação');
 
-      setContratos((prev) => prev.filter((item) => item.id !== id));
+      setQualificacoes((prev) => prev.filter((item) => item.id !== id));
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -120,14 +110,12 @@ export default function ContratoFechadoPage() {
   return (
     <div className="px-8">
       <h2 className="text-2xl font-semibold mb-6">
-        {editingId ? 'Editar Situação' : 'Cadastrar Nova Situação Contratual'}
+        {editingId ? 'Editar Qualificação' : 'Cadastrar Nova Qualificação'}
       </h2>
       {error && <p className="text-red-600 mb-4">{error}</p>}
       <form onSubmit={handleAddOrUpdate} className="mb-6">
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">
-            Situação do Contrato
-          </label>
+          <label className="block text-sm font-medium text-gray-700">Nome</label>
           <input
             type="text"
             value={nome}
@@ -150,16 +138,16 @@ export default function ContratoFechadoPage() {
           className="w-full py-2 bg-[#751B1E] text-white rounded-lg hover:bg-gray-600"
           disabled={loading}
         >
-          {editingId ? 'Atualizar Contrato' : 'Adicionar Contrato'}
+          {editingId ? 'Atualizar Qualificação' : 'Adicionar Qualificação'}
         </button>
       </form>
-      <h3 className="text-xl font-semibold mb-4">Contratos Cadastrados</h3>
+      <h3 className="text-xl font-semibold mb-4">Qualificações Cadastradas</h3>
       {loading && <p>Carregando...</p>}
       <ul>
-        {contratos.map((item) => (
+        {qualificacoes.map((item) => (
           <li
             key={item.id}
-            className="flex justify-between items-center gap-20 p-4 mb-2 bg-gray-100 rounded-md"
+            className="flex justify-between items-center gap-10 p-4 mb-2 bg-gray-100 rounded-md"
           >
             <span>{item.nome}</span>
             <span

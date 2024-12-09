@@ -26,8 +26,12 @@ export default function EspecialidadePage() {
         if (!res.ok) throw new Error('Erro ao carregar especialidades');
         const data = await res.json();
         setEspecialidades(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('Erro desconhecido');
+        }
       } finally {
         setLoading(false);
       }
@@ -61,8 +65,12 @@ export default function EspecialidadePage() {
       setNome('');
       setBackgroundColor('#ffffff');
       setEditingId(null);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Erro desconhecido');
+      }
     } finally {
       setLoading(false);
     }
@@ -87,8 +95,12 @@ export default function EspecialidadePage() {
       if (!res.ok) throw new Error('Erro ao deletar especialidade');
 
       setEspecialidades((prev) => prev.filter((item) => item.id !== id));
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Erro desconhecido');
+      }
     } finally {
       setLoading(false);
     }

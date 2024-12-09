@@ -29,8 +29,12 @@ export default function StatusPage() {
         }
         const data = await response.json();
         setStatuses(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('Erro desconhecido');
+        }
       } finally {
         setLoading(false);
       }
@@ -70,8 +74,12 @@ export default function StatusPage() {
       setNome('');
       setBackgroundColor('#ffffff');
       setEditingId(null);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Erro desconhecido');
+      }
     } finally {
       setLoading(false);
     }
@@ -99,8 +107,12 @@ export default function StatusPage() {
       }
 
       setStatuses((prev) => prev.filter((item) => item.id !== id));
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Erro desconhecido');
+      }
     } finally {
       setLoading(false);
     }
