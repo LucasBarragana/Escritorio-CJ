@@ -217,7 +217,7 @@ export default function AdvogadoProcessosGraficos() {
   };
 
   return (
-    <div className="p-12">
+    <div className="p-12 overflow-y-auto">
       <h1 className="text-3xl font-semibold mb-4">Análise de Relatórios</h1>
       <ProcessosPorMes />
       <div className="mb-6 mt-10">
@@ -243,9 +243,9 @@ export default function AdvogadoProcessosGraficos() {
 
       <Graficos startDate={startDate} endDate={endDate} processos={filteredProcessos} />
 
-      <div className="">
+      <div className="mb-20 pb-20">
         <h1 className="text-2xl font-semibold mt-10 mb-6">Processos por Advogado</h1>
-        <div className='flex justify-between'>
+        <div className='grid grid-cols-1 sm:grid-cols-2'>
           <div>
             <h1 className="text-xl font-semibold mt-6">Por Responsabilidade</h1>
             <canvas ref={mainChartRef}></canvas>

@@ -170,7 +170,7 @@ export default function ContratoFechadoPage() {
             ></span>
             <div>
               <button
-                onClick={() => handleEdit(item)}
+                onClick={() => {handleEdit(item);window.scrollTo(0, 0);}}
                 className="mr-2 px-4 py-2 rounded hover:bg-gray-200"
               >
                 Editar

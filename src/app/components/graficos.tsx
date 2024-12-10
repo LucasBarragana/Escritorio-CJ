@@ -141,7 +141,7 @@ export default function Graficos({ processos }: Props) {
     <div>
       <h1 className="text-2xl font-semibold mt-10 mb-6">Processos por Categoria</h1>
       <div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-20">
           <div>
             <h2 className="text-lg font-semibold">Por Especialidade</h2>
             <canvas ref={chartRefs.especialidade}></canvas>

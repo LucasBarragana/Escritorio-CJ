@@ -118,7 +118,7 @@ export default function Advogados() {
             </div>
             <div>
               <button
-                onClick={() => handleEditAdvogado(advogado)}
+                onClick={() => {handleEditAdvogado(advogado);window.scrollTo(0, 0);}}
                 className="mr-2 px-4 py-2 rounded hover:bg-gray-200"
               >
                 Editar

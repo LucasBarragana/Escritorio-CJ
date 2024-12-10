@@ -113,7 +113,7 @@ export default function ProcessosPorMes() {
   }, [processos]);
 
   return (
-    <div className="w-[50%]">
+    <div className="w-[100%] md:w-[50%]">
       <h2 className="text-lg font-semibold">Processos por Mês</h2>
       <canvas ref={chartRef}></canvas>
     </div>

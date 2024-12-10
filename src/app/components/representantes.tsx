@@ -166,7 +166,7 @@ export default function RepresentantePage() {
             <span>{representante.nome} - {representante.cargo}</span>
             <div>
               <button
-                onClick={() => handleEdit(representante)}
+                onClick={() => {handleEdit(representante);window.scrollTo(0, 0);}}
                 className="mr-2 px-4 py-2 rounded hover:bg-gray-200"
               >
                 Editar
