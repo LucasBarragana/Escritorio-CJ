@@ -53,7 +53,7 @@ export default function AdvogadoProcessosCard() {
   });
 
   return (
-    <div className="block bg-cover bg-center text-white p-6 rounded-lg shadow-custom-red"
+    <div className="block bg-cover bg-center text-white p-6 rounded-lg shadow-custom-red min-h-[400px] max-h-[400px] overflow-y-auto"
     style={{ backgroundImage: "url('/imgs/fundo1.jpg')" }}>
       <h1 className='color-white text-2xl font-semibold underline mb-4'>Processos por Adv.</h1>
       {advogadosComContagem.map((advogado) => (

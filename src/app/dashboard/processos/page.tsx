@@ -129,12 +129,20 @@ export default function ProcessoPage() {
         setTelefone('');
       }
     };
+
+    useEffect(() => {
+      // Define a data do processo ou, se não houver, define a data atual
+      if (!data) {
+        const today = new Date().toISOString().split('T')[0]; // Formato yyyy-mm-dd
+        setData(today);
+      }
+    }, []);
   
    // Função para salvar um novo processo ou editar
    const handleAddOrUpdateProcesso = async (e: React.FormEvent) => {
     e.preventDefault();
   
-    if (!nomeLead || !data || !advogadoId || !representanteId) {
+    if (!nomeLead || !advogadoId || !representanteId) {
       alert('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
@@ -333,72 +341,74 @@ const sortedProjetos = [...filteredProcessos].sort((a, b) => {
 
 
   return (
-    <div className="p-10 w-full"> 
+    <div className="p-10 w-full overflow-x-auto"> 
 
     {/* ---------- INÍCIO DO FORMULÁRIO ----------- */}
 
       <h2 className="text-2xl font-semibold mb-6">{editingProcessoId ? 'Editar Processo' : 'Cadastrar Novo Processo'}</h2>
-      <form onSubmit={handleAddOrUpdateProcesso} className="flex space-x-10 mb-6">
-        <div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Nome do Lead</label>
-            <input
-              type="text"
-              list="lead-names"
-              value={nomeLead}
-              onChange={handleNomeLeadChange}
-              placeholder="Digite o nome do lead"
-              className="w-full p-2 mt-1 border border-gray-300 rounded-md"
-            />
-            {leads.length > 0 && (
-              <datalist id="lead-names">
-                {leads.map((lead) => (
-                  <option key={lead.id} value={lead.nome} />
-                ))}
-              </datalist>
-            )}
+      <form onSubmit={handleAddOrUpdateProcesso} className="flex flex-wrap gap-10 mb-6">
+        <div className='flex gap-8'>
+          <div>
+            <div className="mb-4">
+              <label className="block text-xs  sm:text-sm font-medium text-gray-700">Nome do Lead</label>
+              <input
+                type="text"
+                list="lead-names"
+                value={nomeLead}
+                onChange={handleNomeLeadChange}
+                placeholder="Digite o nome do lead"
+                className="w-full text-sm sm:text-base p-2 mt-1 border border-gray-300 rounded-md"
+              />
+              {leads.length > 0 && (
+                <datalist id="lead-names">
+                  {leads.map((lead) => (
+                    <option key={lead.id} value={lead.nome} />
+                  ))}
+                </datalist>
+              )}
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-xs  sm:text-sm font-medium text-gray-700">Telefone</label>
+              <input
+                type="text"
+                value={telefone}
+                onChange={(e) => setTelefone(e.target.value)} 
+                className="w-full text-sm sm:text-base p-2 mt-1 border border-gray-300 rounded-md"
+                placeholder="Telefone"
+              />
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-xs  sm:text-sm font-medium text-gray-700">Valor do Proceso</label>
+              <input
+                type="text"
+                value={precoProjeto}
+                onChange={(e) => setPrecoProjeto(e.target.value)} 
+                className="w-full text-sm sm:text-base p-2 mt-1 border border-gray-300 rounded-md"
+                placeholder="Valor do Processo"
+              />
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-xs  sm:text-sm font-medium text-gray-700">Data</label>
+              <input
+                type="date"
+                value={data}
+                onChange={(e) => setData(e.target.value)}
+                className="w-full text-sm sm:text-base p-2 mt-1 border border-gray-300 rounded-md"
+                required
+              />
+            </div>
           </div>
 
+          <div>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Telefone</label>
-            <input
-              type="text"
-              value={telefone}
-              onChange={(e) => setTelefone(e.target.value)} 
-              className="w-full p-2 mt-1 border border-gray-300 rounded-md"
-              placeholder="Telefone"
-            />
-          </div>
-
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Valor do Proceso</label>
-            <input
-              type="text"
-              value={precoProjeto}
-              onChange={(e) => setPrecoProjeto(e.target.value)} 
-              className="w-full p-2 mt-1 border border-gray-300 rounded-md"
-              placeholder="Valor do Processo"
-            />
-          </div>
-
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Data</label>
-            <input
-              type="date"
-              value={data}
-              onChange={(e) => setData(e.target.value)}
-              className="w-full p-2 mt-1 border border-gray-300 rounded-md"
-              required
-            />
-          </div>
-        </div>
-        <div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Negociador</label>
+            <label className="block text-xs  sm:text-sm font-medium text-gray-700">Negociador</label>
             <select
               value={advogadoId}
               onChange={(e) => setAdvogadoId(e.target.value)}
-              className="w-full p-2 mt-1 border border-gray-300 rounded-md"
+              className="w-full text-sm sm:text-base p-2 mt-1 border border-gray-300 rounded-md"
               required
             >
               <option value="">Responsável pela negociação </option>
@@ -411,11 +421,11 @@ const sortedProjetos = [...filteredProcessos].sort((a, b) => {
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Responsável</label>
+            <label className="block text-xs  sm:text-sm font-medium text-gray-700">Responsável</label>
             <select
               value={fechamentoId}
               onChange={(e) => setFechamentoId(e.target.value)}
-              className="w-full p-2 mt-1 border border-gray-300 rounded-md"
+              className="w-full text-sm sm:text-base p-2 mt-1 border border-gray-300 rounded-md"
               required
             >
               <option value="">Responsável pelo andamento</option>
@@ -428,30 +438,32 @@ const sortedProjetos = [...filteredProcessos].sort((a, b) => {
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">SDR</label>
-            <select
-              value={representanteId}
-              onChange={(e) => setRepresentanteId(e.target.value)}
-              className="w-full p-2 mt-1 border border-gray-300 rounded-md"
-              required
-            >
-              <option value="">Equipe SDR</option>
-              {representantes.map((representante) => (
-                <option key={representante.id} value={representante.id}>
-                  {representante.nome}
-                </option>
-              ))}
-            </select>
+            <label className="block text-xs  sm:text-sm font-medium text-gray-700">SDR</label>
+              <select
+                value={representanteId}
+                onChange={(e) => setRepresentanteId(e.target.value)}
+                className="w-full text-sm sm:text-base p-2 mt-1 border border-gray-300 rounded-md"
+                required
+              >
+                <option value="">Equipe SDR</option>
+                {representantes.map((representante) => (
+                  <option key={representante.id} value={representante.id}>
+                    {representante.nome}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
-
+        
+        <div className='flex gap-8'>
         <div>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Área</label>
+            <label className="block text-xs  sm:text-sm font-medium text-gray-700">Área</label>
             <select
               value={especialidadeId}
               onChange={(e) => setEspecialidadeId(e.target.value)}
-              className="w-full p-2 mt-1 border border-gray-300 rounded-md"
+              className="w-full text-sm sm:text-base p-2 mt-1 border border-gray-300 rounded-md"
             >
               <option value="">Selecione a Especialidade</option>
               {especialidades.map((especialidade) => (
@@ -463,11 +475,11 @@ const sortedProjetos = [...filteredProcessos].sort((a, b) => {
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Status</label>
+            <label className="block text-xs  sm:text-sm font-medium text-gray-700">Status</label>
               <select
               value={statusId}
               onChange={(e) => setStatusId(e.target.value)}
-              className="w-full p-2 mt-1 border border-gray-300 rounded-md"
+              className="w-full text-sm sm:text-base p-2 mt-1 border border-gray-300 rounded-md"
             >
               <option value="">Selecione o Status</option>
               {statuses.map((especialidade) => (
@@ -479,42 +491,43 @@ const sortedProjetos = [...filteredProcessos].sort((a, b) => {
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Contrato Fechado</label>
-            <select
-              value={contratoFechadoId}
-              onChange={(e) => setContratoFechadoId(e.target.value)}
-              className="w-full p-2 mt-1 border border-gray-300 rounded-md"
-            >
-              <option value="">Selecione o Contrato Fechado</option>
-              {contratos.map((especialidade) => (
-                <option key={especialidade.id} value={especialidade.id}>
-                  {especialidade.nome}
-                </option>
-              ))}
-          </select>
-          </div>
-
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Qualificação</label>
-            <select
-              value={qualificacaoId}
-              onChange={(e) => setQualificacaoId(e.target.value)}
-              className="w-full p-2 mt-1 border border-gray-300 rounded-md"
-              required
-            >
-              <option value="">Selecione a Qualificação</option>
-              {qualificacoes.map((qualificacao) => (
-                <option key={qualificacao.id} value={qualificacao.id}>
-                  {qualificacao.nome}
-                </option>
-              ))}
+            <label className="block text-xs  sm:text-sm font-medium text-gray-700">Contrato Fechado</label>
+              <select
+                value={contratoFechadoId}
+                onChange={(e) => setContratoFechadoId(e.target.value)}
+                className="w-full text-sm sm:text-base p-2 mt-1 border border-gray-300 rounded-md"
+              >
+                <option value="">Selecione o Contrato Fechado</option>
+                {contratos.map((especialidade) => (
+                  <option key={especialidade.id} value={especialidade.id}>
+                    {especialidade.nome}
+                  </option>
+                ))}
             </select>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-xs  sm:text-sm font-medium text-gray-700">Qualificação</label>
+              <select
+                value={qualificacaoId}
+                onChange={(e) => setQualificacaoId(e.target.value)}
+                className="w-full text-sm sm:text-base p-2 mt-1 border border-gray-300 rounded-md"
+                required
+              >
+                <option value="">Selecione a Qualificação</option>
+                {qualificacoes.map((qualificacao) => (
+                  <option key={qualificacao.id} value={qualificacao.id}>
+                    {qualificacao.nome}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
-        </div>
-        <div>
-          <button type="submit" className="w-full bg-[#751B1E] text-white p-2 rounded-md">
-            {editingProcessoId ? 'Atualizar Processo' : 'Cadastrar Processo'}
-          </button>
+          <div>
+            <button type="submit" className="w-full bg-[#751B1E] text-white p-2 rounded-md">
+              {editingProcessoId ? 'Atualizar Processo' : 'Cadastrar Processo'}
+            </button>
+          </div>
         </div>
       </form>
 
@@ -555,125 +568,131 @@ const sortedProjetos = [...filteredProcessos].sort((a, b) => {
       </div>
         
       <div className=' h-[4px] bg-red-900'></div>
-      <table className=" table-auto border-collapse">
-        <thead>
-          <tr>
-            <th className="px-4 py-2">Nome do Lead</th>
-            <th className="px-4 py-2">Data</th>
-            <th className="px-4 py-2">Negociador</th>
-            <th className="px-4 py-2">Responsável</th>
-            <th className="px-4 py-2">SDR</th>
-            <th className="px-4 py-2">Área</th>
-            <th className="px-4 py-2">Status</th>
-            <th className="px-4 py-2">Contrato</th>
-            <th className="px-4 py-2">Qualificação</th>
-            <th className="px-4 py-2">R$ Processo </th>
-            <th className="px-4 py-2">Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sortedProjetos.map((processo) => (
-            <tr key={processo.id}>
-              <td className="text-center border-t border-t-[#771A1D] px-4 py-2">
-                <button
-                  className=" underline"
-                  onClick={() => setSelectedLead(processo)}
-                >
-                  {processo.nomeLead}
-                </button>
-                <br />
-                <button
-                    onClick={() => handleOpenChat(processo.telefone)}
-                    className="text-xs color-black hover:text-md"
-                  >
-                    Digisac
-                  </button>
-              </td>
-              <td className="border-t border-t-[#771A1D] px-4 py-2 text-sm">{formatDate(processo.data)}</td>
-              <td className="border-t border-t-[#771A1D] text-xs px-4 py-2">
-                {advogados.find((advogado) => advogado.id === processo.advogadoId)?.nome || 'N/A'}
-              </td>
-              <td className="border-t border-t-[#771A1D] text-xs px-4 py-2">
-                {advogados.find((advogado) => advogado.id === processo.fechamentoId)?.nome || 'N/A'}
-              </td>
-              <td className="border-t border-t-[#771A1D] text-xs px-4 py-2">
-                {representantes.find((representante) => representante.id === processo.representanteId)?.nome || 'N/A'}
-              </td>
-              <td className="border-t border-t-[#771A1D] px-4 py-2">
-                <span
-                      className="px-2 py-1 rounded text-xs font-semibold"
-                      style={{
-                        backgroundColor: especialidades.find((e) => e.id === processo.especialidadeId)
-                          ?.backgroundColor || '#ffffff',
-                      }}
-                    >
-                      {especialidades.find((e) => e.id === processo.especialidadeId)?.nome || 'N/A'}
-                </span>
-              </td>
-              <td className="border-t border-t-[#771A1D] px-4 py-2">
-                <span
-                      className="px-2 py-1 rounded text-xs font-semibold"
-                      style={{
-                        backgroundColor: statuses.find((e) => e.id === processo.statusId)
-                          ?.backgroundColor || '#ffffff',
-                      }}
-                    >
-                      {statuses.find((e) => e.id === processo.statusId)?.nome || 'N/A'}
-                </span>
-              </td>
-              <td className="border-t border-t-[#771A1D] px-4 py-2">
-                <span
-                      className="px-2 py-1 rounded text-xs font-semibold"
-                      style={{
-                        backgroundColor: contratos.find((e) => e.id === processo.contratoFechadoId)
-                          ?.backgroundColor || '#ffffff',
-                      }}
-                    >
-                      {contratos.find((e) => e.id === processo.contratoFechadoId)?.nome || 'N/A'}
-                </span>
-              </td>
-              <td className="border-t border-t-[#771A1D] px-4 py-2">
-                <span
-                      className="px-2 py-1 rounded text-xs font-semibold"
-                      style={{
-                        backgroundColor: qualificacoes.find((e) => e.id === processo.qualificacaoId)
-                          ?.backgroundColor || '#ffffff',
-                      }}
-                    >
-                      {qualificacoes.find((e) => e.id === processo.qualificacaoId)?.nome || 'N/A'}
-                </span>
-              </td>
-
-              <td className="border-t border-t-[#771A1D] px-4 py-2">
-                <span className="px-2 py-1 rounded text-xs font-semibold"                    >
-                  {processo.precoProjeto}
-                </span>
-              </td>
-
-              <td className="border-t border-t-[#771A1D] px-4 py-2 ">
-                <div className='flex '>
-                  <button
-                    onClick={() => handleEditProcesso(processo)}
-                    className="mr-2 my-2 px-3 py-1 rounded"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 28 28" strokeWidth={1.5} stroke="currentColor" className="size-6">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => handleDeleteProcesso(processo.id)}
-                    className=" px-3 py-1 rounded"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 28 28" strokeWidth={1.5} stroke="currentColor" className="size-6">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                    </svg>
-                  </button>
-                </div>
-              </td>
+      <div className="w-full overflow-x-auto max-h-[500px] overflow-y-auto  scrollbar-gutter-stable">
+        <table className=" table-auto border-collapse w-full">
+          <thead>
+            <tr className='text-sm sm:text-base'>
+              <th className="px-4 py-2">Nome do Lead</th>
+              <th className="px-4 py-2">Data</th>
+              <th className="px-4 py-2">Negociador</th>
+              <th className="px-4 py-2">Responsável</th>
+              <th className="px-4 py-2">SDR</th>
+              <th className="px-4 py-2">Área</th>
+              <th className="px-4 py-2">Status</th>
+              <th className="px-4 py-2">Contrato</th>
+              <th className="px-4 py-2">Qualificação</th>
+              <th className="px-4 py-2">R$ Processo </th>
+              <th className="px-4 py-2">Ações</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className=''>
+            {sortedProjetos.map((processo) => (
+              <tr key={processo.id}>
+                <td className="text-center border-t border-t-[#771A1D] px-4 py-2">
+                  <button
+                    className=" underline text-xs sm:text-sm"
+                    onClick={() => setSelectedLead(processo)}
+                  >
+                    {processo.nomeLead}
+                  </button>
+                  <br />
+                  <button
+                      onClick={() => handleOpenChat(processo.telefone)}
+                      className="text-xs color-black hover:text-md"
+                    >
+                      Digisac
+                    </button>
+                </td>
+                <td className="border-t border-t-[#771A1D] px-4 py-2 text-xs ">{formatDate(processo.data)}</td>
+                <td className="border-t border-t-[#771A1D] text-xs px-4 py-2">
+                  {advogados.find((advogado) => advogado.id === processo.advogadoId)?.nome || 'N/A'}
+                </td>
+                <td className="border-t border-t-[#771A1D] text-xs px-4 py-2">
+                  {advogados.find((advogado) => advogado.id === processo.fechamentoId)?.nome || 'N/A'}
+                </td>
+                <td className="border-t border-t-[#771A1D] text-xs px-4 py-2">
+                  {representantes.find((representante) => representante.id === processo.representanteId)?.nome || 'N/A'}
+                </td>
+                <td className="border-t border-t-[#771A1D] px-4 py-2">
+                  <span
+                        className="px-2 py-1 rounded text-xs font-semibold"
+                        style={{
+                          backgroundColor: especialidades.find((e) => e.id === processo.especialidadeId)
+                            ?.backgroundColor || '#ffffff',
+                        }}
+                      >
+                        {especialidades.find((e) => e.id === processo.especialidadeId)?.nome || 'N/A'}
+                  </span>
+                </td>
+                <td className="border-t border-t-[#771A1D] px-4 py-2">
+                  <span
+                        className="px-2 py-1 rounded text-xs font-semibold"
+                        style={{
+                          backgroundColor: statuses.find((e) => e.id === processo.statusId)
+                            ?.backgroundColor || '#ffffff',
+                        }}
+                      >
+                        {statuses.find((e) => e.id === processo.statusId)?.nome || 'N/A'}
+                  </span>
+                </td>
+                <td className="border-t border-t-[#771A1D] px-4 py-2">
+                  <span
+                        className="px-2 py-1 rounded text-xs font-semibold"
+                        style={{
+                          backgroundColor: contratos.find((e) => e.id === processo.contratoFechadoId)
+                            ?.backgroundColor || '#ffffff',
+                        }}
+                      >
+                        {contratos.find((e) => e.id === processo.contratoFechadoId)?.nome || 'N/A'}
+                  </span>
+                </td>
+                <td className="border-t border-t-[#771A1D] px-4 py-2">
+                  <span
+                        className="px-2 py-1 rounded text-xs font-semibold"
+                        style={{
+                          backgroundColor: qualificacoes.find((e) => e.id === processo.qualificacaoId)
+                            ?.backgroundColor || '#ffffff',
+                        }}
+                      >
+                        {qualificacoes.find((e) => e.id === processo.qualificacaoId)?.nome || 'N/A'}
+                  </span>
+                </td>
+
+                <td className="border-t border-t-[#771A1D] px-4 py-2">
+                  <span className="px-2 py-1 rounded text-xs font-semibold"                    >
+                    {processo.precoProjeto}
+                  </span>
+                </td>
+
+                <td className="border-t border-t-[#771A1D] px-4 py-2 ">
+                  <div className='block'>
+                    <button
+                        onClick={() => {
+                          handleEditProcesso(processo);
+                          window.scrollTo(0, 0); 
+                        }}
+                      className="mr-2 my-2 px-3 py-1 rounded"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 28 28" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => handleDeleteProcesso(processo.id)}
+                      className=" px-3 py-1 rounded"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 28 28" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
       <div className='w-full h-[4px] bg-red-900'></div>
 
     {/* ---------- FIM DA TABELA E PESQUISA ----------- */}

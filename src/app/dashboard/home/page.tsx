@@ -147,7 +147,7 @@ const processosOrdenados = processosFiltrados.sort((a, b) => {
     <div className="p-8 w-full min-h-screen">
       <div className=''>
         <h2 className="text-2xl font-semibold mb-6">Dashboard de Processos</h2>
-        <div className="grid grid-cols-3 gap-10 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 mb-8">
           <div className="bg-gray-100 p-6 rounded-lg shadow-md">
             <h3 className="text-xl font-semibold">Total de Leads</h3>
             <p className="text-xs mb-4">Este Mês</p>
@@ -225,8 +225,8 @@ const processosOrdenados = processosFiltrados.sort((a, b) => {
           </div>
         </div>
 
-        <div className="flex justify-between gap-20">
-          <div className="overflow-y-auto max-h-[calc(10*2.5rem)]">
+        <div className="flex justify-between flex-wrap gap-20">
+          <div className="overflow-y-auto overflow-x-auto max-h-[calc(10*2.5rem)]">
             <h3 className="text-xl font-semibold mb-4">Processos Deste Mês</h3>
             <table className="min-w-full table-auto border-collapse mb-6">
               <thead>
