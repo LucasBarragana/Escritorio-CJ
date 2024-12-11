@@ -61,7 +61,6 @@ interface Processo {
 }
 
 export default function ProcessoPage() {
-  const [leads] = useState<Lead[]>([]);
   const [advogados, setAdvogados] = useState<Advogado[]>([]);
   const [representantes, setRepresentantes] = useState<Representante[]>([]);
   const [processos, setProcessos] = useState<Processo[]>([]);
@@ -116,19 +115,6 @@ export default function ProcessoPage() {
 
   
   {/* ---------- INÍCIO FORMULÁRIO ----------- */}
-
-    // Verifica se o nomeLead corresponde a algum lead e preenche o telefone
-    const handleNomeLeadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const nome = e.target.value;
-      setNomeLead(nome);
-  
-      const lead = leads.find((lead) => lead.nome === nome);
-      if (lead) {
-        setTelefone(lead.telefone);
-      } else {
-        setTelefone('');
-      }
-    };
 
     useEffect(() => {
       // Define a data do processo ou, se não houver, define a data atual
@@ -355,17 +341,10 @@ const sortedProjetos = [...filteredProcessos].sort((a, b) => {
                 type="text"
                 list="lead-names"
                 value={nomeLead}
-                onChange={handleNomeLeadChange}
+                onChange={(e) => setNomeLead(e.target.value)} 
                 placeholder="Digite o nome do lead"
                 className="w-full text-sm sm:text-base p-2 mt-1 border border-gray-300 rounded-md"
               />
-              {leads.length > 0 && (
-                <datalist id="lead-names">
-                  {leads.map((lead) => (
-                    <option key={lead.id} value={lead.nome} />
-                  ))}
-                </datalist>
-              )}
             </div>
 
             <div className="mb-4">
@@ -536,13 +515,13 @@ const sortedProjetos = [...filteredProcessos].sort((a, b) => {
     {/* ---------- INÍCIO DA TABELA E PESQUISA ----------- */}
 
       <h3 className="text-xl font-semibold mb-4">Processos Cadastrados</h3>
-      <div className='flex gap-8 mb-4'>
+      <div className='flex gap-4 pr-4'>
         <div>
           <label className="block text-sm font-medium text-gray-700">Pesquisar por</label>
           <select
             value={searchField}
             onChange={(e) => setSearchField(e.target.value)}
-            className="p-2 mt-1 border border-gray-300 rounded-md"
+            className="p-2 mt-1 border border-gray-300 rounded-md text-sm sm:p-2 mt-1 border border-gray-300 rounded-md text-base"
           >
             <option value="nomeLead">Nome do Lead</option>
             <option value="telefone">Telefone</option>
@@ -562,7 +541,7 @@ const sortedProjetos = [...filteredProcessos].sort((a, b) => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={`Pesquisar por ${searchField}`}
-            className="p-2 mt-1 border border-gray-300 rounded-md"
+            className="p-2 mt-1 border border-gray-300 rounded-md text-sm sm:p-2 mt-1 border border-gray-300 rounded-md text-base"
           />
         </div>
       </div>

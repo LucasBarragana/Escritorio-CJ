@@ -225,57 +225,59 @@ const processosOrdenados = processosFiltrados.sort((a, b) => {
           </div>
         </div>
 
-        <div className="flex justify-between flex-wrap gap-20">
-          <div className="overflow-y-auto overflow-x-auto max-h-[calc(10*2.5rem)]">
+        <div className="block sm:flex justify-between  gap-20">
+          <div>
             <h3 className="text-xl font-semibold mb-4">Processos Deste Mês</h3>
-            <table className="min-w-full table-auto border-collapse mb-6">
-              <thead>
-                <tr>
-                  <th className="px-4 py-2">Nome do Lead</th>
-                  <th className="px-4 py-2">Data</th>
-                  <th className="px-4 py-2">Negociador</th>
-                  <th className="px-4 py-2">Responsável</th>
-                  <th className="px-4 py-2">Área</th>
-                  <th className="px-4 py-2">Contrato</th>
-                </tr>
-              </thead>
-              <tbody>
-                {processosOrdenados.map((processo) => (
-                  <tr key={processo.id}>
-                    <td className="border-t border-t-[#771A1D] px-4 py-2">{processo.nomeLead}</td>
-                    <td className="border-t border-t-[#771A1D] px-4 py-2">{formatDate(processo.data)}</td>
-                    <td className="border-t border-t-[#771A1D] px-4 py-2">
-                      {advogados.find((advogado) => advogado.id === processo.advogadoId)?.nome}
-                    </td>
-                    <td className="border-t border-t-[#771A1D] px-4 py-2">
-                      {advogados.find((advogado) => advogado.id === processo.fechamentoId)?.nome}
-                    </td>
-                    <td className="border-t border-t-[#771A1D] px-4 py-2">
-                      <span
-                            className="px-2 py-1 rounded text-xs font-semibold"
-                            style={{
-                              backgroundColor: especialidades.find((e) => e.id === processo.especialidadeId)
-                                ?.backgroundColor || '#ffffff',
-                            }}
-                          >
-                            {especialidades.find((e) => e.id === processo.especialidadeId)?.nome || 'N/A'}
-                      </span>
-                    </td>
-                    <td className="border-t border-t-[#771A1D] px-4 py-2">
-                      <span
-                            className="px-2 py-1 rounded text-xs font-semibold"
-                            style={{
-                              backgroundColor: contratos.find((e) => e.id === processo.contratoFechadoId)
-                                ?.backgroundColor || '#ffffff',
-                            }}
-                          >
-                            {contratos.find((e) => e.id === processo.contratoFechadoId)?.nome || 'N/A'}
-                      </span>
-                    </td>
+            <div className="overflow-y-auto overflow-x-auto max-h-[calc(10*2.5rem)]">
+              <table className="min-w-full table-auto border-collapse mb-6">
+                <thead>
+                  <tr>
+                    <th className="px-4 py-2">Nome do Lead</th>
+                    <th className="px-4 py-2">Data</th>
+                    <th className="px-4 py-2">Negociador</th>
+                    <th className="px-4 py-2">Responsável</th>
+                    <th className="px-4 py-2">Área</th>
+                    <th className="px-4 py-2">Contrato</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {processosOrdenados.map((processo) => (
+                    <tr key={processo.id}>
+                      <td className="border-t border-t-[#771A1D] px-4 py-2">{processo.nomeLead}</td>
+                      <td className="border-t border-t-[#771A1D] px-4 py-2">{formatDate(processo.data)}</td>
+                      <td className="border-t border-t-[#771A1D] px-4 py-2">
+                        {advogados.find((advogado) => advogado.id === processo.advogadoId)?.nome}
+                      </td>
+                      <td className="border-t border-t-[#771A1D] px-4 py-2">
+                        {advogados.find((advogado) => advogado.id === processo.fechamentoId)?.nome}
+                      </td>
+                      <td className="border-t border-t-[#771A1D] px-4 py-2">
+                        <span
+                              className="px-2 py-1 rounded text-xs font-semibold"
+                              style={{
+                                backgroundColor: especialidades.find((e) => e.id === processo.especialidadeId)
+                                  ?.backgroundColor || '#ffffff',
+                              }}
+                            >
+                              {especialidades.find((e) => e.id === processo.especialidadeId)?.nome || 'N/A'}
+                        </span>
+                      </td>
+                      <td className="border-t border-t-[#771A1D] px-4 py-2">
+                        <span
+                              className="px-2 py-1 rounded text-xs font-semibold"
+                              style={{
+                                backgroundColor: contratos.find((e) => e.id === processo.contratoFechadoId)
+                                  ?.backgroundColor || '#ffffff',
+                              }}
+                            >
+                              {contratos.find((e) => e.id === processo.contratoFechadoId)?.nome || 'N/A'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <div>
