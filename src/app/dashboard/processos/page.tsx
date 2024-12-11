@@ -123,7 +123,7 @@ export default function ProcessoPage() {
    const handleAddOrUpdateProcesso = async (e: React.FormEvent) => {
     e.preventDefault();
   
-    if (!nomeLead || !advogadoId || !representanteId) {
+    if (!nomeLead || !telefone || !advogadoId || !representanteId) {
       alert('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
@@ -569,7 +569,9 @@ const sortedProjetos = [...filteredProcessos].sort((a, b) => {
                       Digisac
                     </button>
                 </td>
-                <td className="border-t border-t-[#771A1D] px-4 py-2 text-xs ">{processo.data}</td>
+                <td className="border-t border-t-[#771A1D] px-4 py-2 text-xs ">
+                  {new Date(processo.data).toLocaleDateString('pt-BR')}
+                </td>
                 <td className="border-t border-t-[#771A1D] text-xs px-4 py-2">
                   {advogados.find((advogado) => advogado.id === processo.advogadoId)?.nome || 'N/A'}
                 </td>
