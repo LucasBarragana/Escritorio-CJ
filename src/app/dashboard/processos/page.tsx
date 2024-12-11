@@ -3,11 +3,6 @@
 import { useState, useEffect } from 'react';
 
     {/* ---------- TIPOS DE DADOS ----------- */}
-interface Lead {
-  id: string;
-  nome: string;
-  telefone: string;
-}
 
 interface Advogado {
   id: string;
