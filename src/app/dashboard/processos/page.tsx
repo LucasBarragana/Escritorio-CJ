@@ -76,6 +76,8 @@ export default function ProcessoPage() {
   const [precoProjeto, setPrecoProjeto] = useState('');
   const [editingProcessoId, setEditingProcessoId] = useState<string | null>(null);
   const [selectedLead, setSelectedLead] = useState<Processo | null>(null); // Para pop-up
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [selectedProcesso, setSelectedProcesso] = useState<Processo | null>(null);
 
   {/* ---------- CONEXÕES ----------- */}
 
@@ -111,13 +113,49 @@ export default function ProcessoPage() {
   
   {/* ---------- INÍCIO FORMULÁRIO ----------- */}
 
-    useEffect(() => {
-      // Define a data do processo ou, se não houver, define a data atual
-      if (!data) {
-        const today = new Date().toISOString().split('T')[0]; // Formato yyyy-mm-dd
-        setData(today);
-      }
-    }, []);
+  // Define as opções pré-selecionadas inicialmente
+  const initializeForm = () => {
+    if (advogados.length > 0) {
+      const advogadoNenhum = advogados.find((adv) => adv.nome === 'Nenhum');
+      setAdvogadoId(advogadoNenhum?.id || '');
+  
+      const fechamentoNenhum = advogados.find((adv) => adv.nome === 'Nenhum');
+      setFechamentoId(fechamentoNenhum?.id || '');
+    }
+  
+    if (statuses.length > 0) {
+      const statusInicial = statuses.find((st) => st.nome === 'Inicial');
+      setStatusId(statusInicial?.id || '');
+    }
+  
+    if (contratos.length > 0) {
+      const contratoInicial = contratos.find((cf) => cf.nome === 'Inicial');
+      setContratoFechadoId(contratoInicial?.id || '');
+    }
+  
+    if (qualificacoes.length > 0) {
+      const qualificacaoInicial = qualificacoes.find((q) => q.nome === 'Inicial');
+      setQualificacaoId(qualificacaoInicial?.id || '');
+    }
+  
+    if (!data) {
+      const today = new Date();
+      const formattedDate = today.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+      setData(formattedDate);
+    }
+  
+    setNomeLead('');
+    setTelefone('');
+    setEspecialidadeId('');
+    setRepresentanteId('');
+    setPrecoProjeto('');
+    setEditingProcessoId(null);
+  };
+  
+  // useEffect para inicializar o formulário ao carregar a página
+  useEffect(() => {
+    initializeForm();
+  }, [advogados, statuses, contratos, qualificacoes]);
   
    // Função para salvar um novo processo ou editar
    const handleAddOrUpdateProcesso = async (e: React.FormEvent) => {
@@ -204,20 +242,10 @@ export default function ProcessoPage() {
     }
   };
   
-  const resetForm = () => {
-    setNomeLead('');
-    setTelefone('');
-    setData('');
-    setAdvogadoId('');
-    setRepresentanteId('');
-    setEspecialidadeId('');
-    setStatusId('');
-    setContratoFechadoId('');
-    setQualificacaoId('');
-    setFechamentoId('');
-    setEditingProcessoId(null);
-    setPrecoProjeto('');
-  };
+// Função para resetar o formulário
+const resetForm = () => {
+  initializeForm();
+};
   {/* ---------- FIM FORMULÁRIO ----------- */}
 
 
@@ -280,7 +308,9 @@ const sortedProjetos = [...filteredProcessos].sort((a, b) => {
     setEditingProcessoId(processo.id);
     setNomeLead(processo.nomeLead);
     setTelefone(processo.telefone);
-    setData(new Date(processo.data).toISOString().split('T')[0]); 
+  // Certifique-se de que a data esteja no formato correto (YYYY-MM-DD)
+    const formattedDate = processo.data.split('T')[0]; // Caso a data venha com horário, apenas remova a parte do horário
+    setData(formattedDate);
     setAdvogadoId(processo.advogadoId);
     setRepresentanteId(processo.representanteId);
     setEspecialidadeId(processo.especialidadeId);
@@ -375,6 +405,7 @@ const sortedProjetos = [...filteredProcessos].sort((a, b) => {
               value={advogadoId}
               onChange={(e) => setAdvogadoId(e.target.value)}
               className="w-full text-sm sm:text-base p-2 mt-1 border border-gray-300 rounded-md"
+              defaultValue="Nenhum"
               required
             >
               <option value="">Responsável pela negociação </option>
@@ -569,8 +600,14 @@ const sortedProjetos = [...filteredProcessos].sort((a, b) => {
                       Digisac
                     </button>
                 </td>
-                <td className="border-t border-t-[#771A1D] px-4 py-2 text-xs ">
-                  {(new Date(processo.data).toISOString().split('T')[0])}
+                <td className="border-t border-t-[#771A1D] px-4 py-2 text-xs">
+                  {processo.data
+                    ? new Intl.DateTimeFormat('pt-BR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: '2-digit',
+                      }).format(new Date(processo.data))
+                    : 'Data inválida'}
                 </td>
                 <td className="border-t border-t-[#771A1D] text-xs px-4 py-2">
                   {advogados.find((advogado) => advogado.id === processo.advogadoId)?.nome || 'N/A'}
@@ -583,7 +620,7 @@ const sortedProjetos = [...filteredProcessos].sort((a, b) => {
                 </td>
                 <td className="border-t border-t-[#771A1D] px-4 py-2">
                   <span
-                        className="px-2 py-1 rounded text-xs font-semibold"
+                        className="flex items-center justify-center align-center px-2 py-1 rounded text-xs font-semibold"
                         style={{
                           backgroundColor: especialidades.find((e) => e.id === processo.especialidadeId)
                             ?.backgroundColor || '#ffffff',
@@ -594,7 +631,7 @@ const sortedProjetos = [...filteredProcessos].sort((a, b) => {
                 </td>
                 <td className="border-t border-t-[#771A1D] px-4 py-2">
                   <span
-                        className="px-2 py-1 rounded text-xs font-semibold"
+                        className="flex items-center justify-center align-center px-2 py-1 rounded text-xs font-semibold"
                         style={{
                           backgroundColor: statuses.find((e) => e.id === processo.statusId)
                             ?.backgroundColor || '#ffffff',
@@ -605,7 +642,7 @@ const sortedProjetos = [...filteredProcessos].sort((a, b) => {
                 </td>
                 <td className="border-t border-t-[#771A1D] px-4 py-2">
                   <span
-                        className="px-2 py-1 rounded text-xs font-semibold"
+                        className="flex items-center justify-center align-center px-2 py-1 rounded text-xs font-semibold"
                         style={{
                           backgroundColor: contratos.find((e) => e.id === processo.contratoFechadoId)
                             ?.backgroundColor || '#ffffff',
@@ -616,7 +653,7 @@ const sortedProjetos = [...filteredProcessos].sort((a, b) => {
                 </td>
                 <td className="border-t border-t-[#771A1D] px-4 py-2">
                   <span
-                        className="px-2 py-1 rounded text-xs font-semibold"
+                        className="flex items-center justify-center align-center px-2 py-1 rounded text-xs font-semibold"
                         style={{
                           backgroundColor: qualificacoes.find((e) => e.id === processo.qualificacaoId)
                             ?.backgroundColor || '#ffffff',
@@ -646,13 +683,16 @@ const sortedProjetos = [...filteredProcessos].sort((a, b) => {
                       </svg>
                     </button>
                     <button
-                      onClick={() => handleDeleteProcesso(processo.id)}
-                      className=" px-3 py-1 rounded"
-                    >
+                      onClick={() => {
+                          setShowDeletePopup(true);
+                          setSelectedProcesso(processo);
+                      }}
+                      className="px-3 py-1 rounded"
+                  >
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 28 28" strokeWidth={1.5} stroke="currentColor" className="size-6">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                       </svg>
-                    </button>
+                  </button>
                   </div>
                 </td>
               </tr>
@@ -683,6 +723,40 @@ const sortedProjetos = [...filteredProcessos].sort((a, b) => {
         </div>
       )}
     {/* ---------- FIM DO POPUP DO CONTATO ----------- */}
+
+
+    {showDeletePopup && selectedProcesso && (
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-6 rounded shadow-lg w-96 text-center">
+              <h2 className="text-lg font-bold mb-4">Confirmar Delete</h2>
+              <p className="text-sm text-gray-700 mb-6">
+                  Você tem certeza que deseja deletar o processo de <strong>{selectedProcesso.nomeLead}</strong>?
+              </p>
+              <div className="flex justify-center space-x-4">
+                  <button
+                      onClick={() => {
+                          setShowDeletePopup(false);
+                          setSelectedProcesso(null);
+                      }}
+                      className="px-4 py-2 bg-gray-300 text-gray-700 rounded"
+                  >
+                      Cancelar
+                  </button>
+                  <button
+                      onClick={() => {
+                          handleDeleteProcesso(selectedProcesso.id);
+                          setShowDeletePopup(false);
+                          setSelectedProcesso(null);
+                      }}
+                      className="px-4 py-2 bg-red-500 text-white rounded"
+                  >
+                      Deletar
+                  </button>
+              </div>
+          </div>
+      </div>
+    )}
+
     </div>
   );
 }
